@@ -2,9 +2,6 @@ using FluentValidation;
 using FluentValidation.AspNetCore;
 using MF.Express.Bot.Api.Extensions;
 using MF.Express.Bot.Api.Middleware;
-using MF.Express.Bot.Application.Commands;
-using MF.Express.Bot.Application.DTOs;
-using MF.Express.Bot.Application.Interfaces;
 using MF.Express.Bot.Infrastructure.Configuration;
 using MF.Express.Bot.Infrastructure.Extensions;
 using Serilog;
@@ -17,7 +14,15 @@ builder.Services.AddAuthentication();
 
 // API Documentation
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new() 
+    { 
+        Title = "MF Express Bot API", 
+        Version = "v1",
+        Description = "Прокси-бот для мессенджера Express. Предоставляет API для регистрации пользователей и отправки запросов авторизации."
+    });
+});
 
 // Валидация
 builder.Services.AddFluentValidationAutoValidation();
@@ -48,86 +53,23 @@ app.UseSerilogRequestLogging();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "MF Express Bot API v1");
+        c.RoutePrefix = string.Empty; // Swagger UI на корневом пути
+    });
 }
 
 // Health checks
 app.MapHealthChecks("/healthz");
 
-// Express Bot Proxy API endpoints
-app.MapPost("/register-user", async (
-    RegisterUserRequestDto request,
-    ICommand<RegisterUserCommand, RegisterUserResultDto> handler,
-    CancellationToken ct) =>
-{
-    var command = new RegisterUserCommand(
-        request.ChatId,
-        request.UserId,
-        request.Username,
-        request.FirstName,
-        request.LastName,
-        request.Metadata);
-        
-    var result = await handler.Handle(command, ct);
-    return result.Success ? Results.Ok(result) : Results.BadRequest(result);
-})
-.WithName("RegisterUser")
-.WithOpenApi()
-.WithSummary("Регистрация пользователя в чате с ботом");
+// Express Bot Endpoints - чистая регистрация без захламления Program.cs
+// Можно выбрать один из подходов:
 
-app.MapPost("/send-auth-request", async (
-    SendAuthRequestDto request,
-    ICommand<SendAuthRequestCommand, SendAuthResultDto> handler,
-    CancellationToken ct) =>
-{
-    var command = new SendAuthRequestCommand(
-        request.ChatId,
-        request.UserId,
-        request.AuthRequestId,
-        request.Message,
-        request.ResourceName,
-        request.Metadata);
-        
-    var result = await handler.Handle(command, ct);
-    return result.Success ? Results.Ok(result) : Results.BadRequest(result);
-})
-.WithName("SendAuthRequest")
-.WithOpenApi()
-.WithSummary("Отправка запроса авторизации с кнопками подтверждения");
+// 1. Простая регистрация всех endpoints
+app.MapSimpleEndpoints();
 
-// Manual message sending (для тестирования/административных целей)
-app.MapPost("/send", async (
-    SendMessageRequestDto request,
-    ICommand<SendMessageCommand, SendMessageResultDto> handler,
-    CancellationToken ct) =>
-{
-    var command = new SendMessageCommand(
-        request.ChatId, 
-        request.Text, 
-        request.Type, 
-        request.ReplyToMessageId, 
-        request.Metadata);
-        
-    var result = await handler.Handle(command, ct);
-    return Results.Ok(result);
-})
-.WithName("SendMessage")
-.WithOpenApi()
-.WithSummary("Отправка сообщения через бота");
-
-// Bot status endpoint
-app.MapGet("/status", async (IExpressBotService botService, CancellationToken ct) =>
-{
-    var botInfo = await botService.GetBotInfoAsync(ct);
-    return Results.Ok(new
-    {
-        BotInfo = botInfo,
-        Status = "Running",
-        Timestamp = DateTime.UtcNow
-    });
-})
-.WithName("GetBotStatus")
-.WithOpenApi()
-.WithSummary("Получить статус бота");
+// 2. Альтернативно - группировка endpoints по функциональности (раскомментируйте при необходимости)
+// app.MapBotEndpoints();
 
 app.Run();
