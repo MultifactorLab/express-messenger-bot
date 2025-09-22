@@ -1,0 +1,67 @@
+### MF Express Bot API Examples
+
+@baseUrl = https://localhost:5001
+@botUrl = {{baseUrl}}
+
+### Health Check
+GET {{botUrl}}/healthz
+Accept: application/json
+
+###
+
+### Bot Status
+GET {{botUrl}}/status
+Accept: application/json
+
+###
+
+### Register User in Chat
+POST {{botUrl}}/register-user
+Content-Type: application/json
+
+{
+  "chatId": "express_chat_123",
+  "userId": "user_456",
+  "username": "john_doe",
+  "firstName": "John",
+  "lastName": "Doe",
+  "metadata": {
+    "registrationSource": "MultiFactor"
+  }
+}
+
+###
+
+### Send Authorization Request with Buttons
+POST {{botUrl}}/send-auth-request
+Content-Type: application/json
+
+{
+  "chatId": "express_chat_123",
+  "userId": "user_456",
+  "authRequestId": "auth_req_789",
+  "message": "Попытка входа в систему",
+  "resourceName": "Corporate Portal",
+  "metadata": {
+    "ipAddress": "192.168.1.100",
+    "userAgent": "Mozilla/5.0...",
+    "timestamp": "2024-01-15T14:30:00Z"
+  }
+}
+
+###
+
+### Send Simple Message (for testing)
+POST {{botUrl}}/send
+Content-Type: application/json
+
+{
+  "chatId": "express_chat_123",
+  "text": "Тестовое сообщение от бота",
+  "type": 1,
+  "metadata": {
+    "messageType": "test"
+  }
+}
+
+###
