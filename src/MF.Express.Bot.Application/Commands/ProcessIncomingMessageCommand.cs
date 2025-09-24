@@ -22,7 +22,7 @@ public record ProcessIncomingMessageCommand(
 /// <summary>
 /// Обработчик команды ProcessIncomingMessage
 /// </summary>
-public class ProcessIncomingMessageHandler : ICommand<ProcessIncomingMessageCommand, WebhookProcessedResponse>
+public class ProcessIncomingMessageHandler : ICommand<ProcessIncomingMessageCommand, CommandProcessedResponse>
 {
     private readonly IMultifactorApiService _multifactorApiService;
     private readonly IExpressBotService _expressBotService;
@@ -38,7 +38,7 @@ public class ProcessIncomingMessageHandler : ICommand<ProcessIncomingMessageComm
         _logger = logger;
     }
 
-    public async Task<WebhookProcessedResponse> Handle(ProcessIncomingMessageCommand command, CancellationToken cancellationToken)
+    public async Task<CommandProcessedResponse> Handle(ProcessIncomingMessageCommand command, CancellationToken cancellationToken)
     {
         try
         {
@@ -63,7 +63,7 @@ public class ProcessIncomingMessageHandler : ICommand<ProcessIncomingMessageComm
             if (!success)
             {
                 _logger.LogWarning("Не удалось отправить информацию о пользователе {UserId} в Multifactor API", command.UserId);
-                return new WebhookProcessedResponse(false, "Ошибка при отправке данных в Multifactor API");
+                return new CommandProcessedResponse(false, "Ошибка при отправке данных в Multifactor API");
             }
 
             // Опционально: отправляем подтверждающее сообщение пользователю
@@ -73,12 +73,12 @@ public class ProcessIncomingMessageHandler : ICommand<ProcessIncomingMessageComm
                 cancellationToken);
 
             _logger.LogInformation("Входящее сообщение от пользователя {UserId} успешно обработано", command.UserId);
-            return new WebhookProcessedResponse(true);
+            return new CommandProcessedResponse(true);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Ошибка при обработке входящего сообщения от пользователя {UserId}", command.UserId);
-            return new WebhookProcessedResponse(false, $"Внутренняя ошибка: {ex.Message}");
+            return new CommandProcessedResponse(false, $"Внутренняя ошибка: {ex.Message}");
         }
     }
 }

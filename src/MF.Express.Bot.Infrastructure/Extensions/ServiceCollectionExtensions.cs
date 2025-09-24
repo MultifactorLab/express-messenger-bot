@@ -35,9 +35,9 @@ public static class ServiceCollectionExtensions
         services.AddHttpClient("ExpressBot", (serviceProvider, client) =>
         {
             var config = serviceProvider.GetRequiredService<IOptions<ExpressBotConfiguration>>().Value;
-            client.BaseAddress = new Uri(config.ApiBaseUrl);
+            client.BaseAddress = new Uri(config.BotXApiBaseUrl);
             client.DefaultRequestHeaders.Authorization = 
-                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", config.BotToken);
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", config.BotSecretKey);
             client.Timeout = TimeSpan.FromSeconds(config.RequestTimeoutSeconds);
         });
 
@@ -52,7 +52,7 @@ public static class ServiceCollectionExtensions
     /// </summary>
     public static IServiceCollection AddCommandsAndQueries(this IServiceCollection services)
     {
-        var applicationAssembly = typeof(SendMessageCommand).Assembly;
+        var applicationAssembly = typeof(ICommand<,>).Assembly;
         
         services.AddCommands(applicationAssembly);
         services.AddQueries(applicationAssembly);

@@ -10,7 +10,8 @@ using Microsoft.Extensions.Options;
 namespace MF.Express.Bot.Infrastructure.ExternalServices;
 
 /// <summary>
-/// Реализация сервиса для работы с Express Bot API
+/// Реализация сервиса для работы с BotX API v4
+/// Используется для отправки сообщений через Express.MS BotX
 /// </summary>
 public class ExpressBotService : IExpressBotService
 {
@@ -197,68 +198,6 @@ public class ExpressBotService : IExpressBotService
         }
     }
 
-    public async Task<bool> SetWebhookAsync(string webhookUrl, CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            _logger.LogInformation("Установка webhook URL: {WebhookUrl}", webhookUrl);
-
-            var httpClient = _httpClientFactory.CreateClient("ExpressBot");
-            var request = new
-            {
-                url = webhookUrl,
-                secret_token = _config.WebhookSecret
-            };
-
-            var json = JsonSerializer.Serialize(request, _jsonOptions);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-            var response = await httpClient.PostAsync("bot/setWebhook", content, cancellationToken);
-            
-            if (response.IsSuccessStatusCode)
-            {
-                _logger.LogInformation("Webhook успешно установлен");
-                return true;
-            }
-
-            var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
-            _logger.LogWarning("Не удалось установить webhook. Status: {StatusCode}, Response: {Response}", 
-                response.StatusCode, responseContent);
-            return false;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Ошибка при установке webhook");
-            return false;
-        }
-    }
-
-    public async Task<bool> DeleteWebhookAsync(CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            _logger.LogInformation("Удаление webhook");
-
-            var httpClient = _httpClientFactory.CreateClient("ExpressBot");
-            var response = await httpClient.PostAsync("bot/deleteWebhook", null, cancellationToken);
-            
-            if (response.IsSuccessStatusCode)
-            {
-                _logger.LogInformation("Webhook успешно удален");
-                return true;
-            }
-
-            var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
-            _logger.LogWarning("Не удалось удалить webhook. Status: {StatusCode}, Response: {Response}", 
-                response.StatusCode, responseContent);
-            return false;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Ошибка при удалении webhook");
-            return false;
-        }
-    }
 
     #region API Response Models
 

@@ -22,18 +22,19 @@ public static class ServiceCollectionExtensions
 }
 
 /// <summary>
-/// Health check для Express Bot API
+/// Health check для Bot API v4
+/// Проверяет доступность BotX API и статус бота
 /// </summary>
 public class ExpressBotHealthCheck : IHealthCheck
 {
-    private readonly IExpressBotService _botService;
+    private readonly IBotXApiService _botXApiService;
     private readonly ILogger<ExpressBotHealthCheck> _logger;
 
     public ExpressBotHealthCheck(
-        IExpressBotService botService,
+        IBotXApiService botXApiService,
         ILogger<ExpressBotHealthCheck> logger)
     {
-        _botService = botService;
+        _botXApiService = botXApiService;
         _logger = logger;
     }
 
@@ -43,19 +44,21 @@ public class ExpressBotHealthCheck : IHealthCheck
     {
         try
         {
-            var botInfo = await _botService.GetBotInfoAsync(cancellationToken);
+            // Простая проверка - пытаемся отправить тестовое сообщение самому себе
+            // В реальности можно добавить специальный health check endpoint в BotX API
+            var testResult = await _botXApiService.SendTextMessageAsync("health-check", "ping", cancellationToken);
             
-            if (botInfo.IsActive)
+            if (testResult)
             {
-                return HealthCheckResult.Healthy($"Bot {botInfo.Name} is active");
+                return HealthCheckResult.Healthy("BotX API connection is healthy");
             }
             
-            return HealthCheckResult.Degraded($"Bot {botInfo.Name} is not active");
+            return HealthCheckResult.Degraded("BotX API connection has issues");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Health check failed for Express Bot");
-            return HealthCheckResult.Unhealthy("Express Bot API is not accessible", ex);
+            _logger.LogError(ex, "Health check failed for BotX API");
+            return HealthCheckResult.Unhealthy("BotX API is not accessible", ex);
         }
     }
 }

@@ -21,7 +21,7 @@ public record ProcessAuthCallbackCommand(
 /// <summary>
 /// Обработчик команды ProcessAuthCallback
 /// </summary>
-public class ProcessAuthCallbackHandler : ICommand<ProcessAuthCallbackCommand, WebhookProcessedResponse>
+public class ProcessAuthCallbackHandler : ICommand<ProcessAuthCallbackCommand, CommandProcessedResponse>
 {
     private readonly IMultifactorApiService _multifactorApiService;
     private readonly IExpressBotService _expressBotService;
@@ -37,7 +37,7 @@ public class ProcessAuthCallbackHandler : ICommand<ProcessAuthCallbackCommand, W
         _logger = logger;
     }
 
-    public async Task<WebhookProcessedResponse> Handle(ProcessAuthCallbackCommand command, CancellationToken cancellationToken)
+    public async Task<CommandProcessedResponse> Handle(ProcessAuthCallbackCommand command, CancellationToken cancellationToken)
     {
         try
         {
@@ -58,7 +58,7 @@ public class ProcessAuthCallbackHandler : ICommand<ProcessAuthCallbackCommand, W
             if (!success)
             {
                 _logger.LogWarning("Не удалось отправить результат авторизации {AuthRequestId} в Multifactor API", command.AuthRequestId);
-                return new WebhookProcessedResponse(false, "Ошибка при отправке результата авторизации в Multifactor API");
+                return new CommandProcessedResponse(false, "Ошибка при отправке результата авторизации в Multifactor API");
             }
 
             // Отправляем подтверждающее сообщение пользователю
@@ -72,12 +72,12 @@ public class ProcessAuthCallbackHandler : ICommand<ProcessAuthCallbackCommand, W
                 cancellationToken);
 
             _logger.LogInformation("Callback авторизации {AuthRequestId} успешно обработан", command.AuthRequestId);
-            return new WebhookProcessedResponse(true);
+            return new CommandProcessedResponse(true);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Ошибка при обработке callback авторизации {AuthRequestId}", command.AuthRequestId);
-            return new WebhookProcessedResponse(false, $"Внутренняя ошибка: {ex.Message}");
+            return new CommandProcessedResponse(false, $"Внутренняя ошибка: {ex.Message}");
         }
     }
 }

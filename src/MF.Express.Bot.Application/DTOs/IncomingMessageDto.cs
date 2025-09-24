@@ -16,15 +16,15 @@ public record IncomingMessageDto(
 );
 
 /// <summary>
-/// DTO для ответа на обработку webhook
+/// DTO для ответа на обработку команды Bot API v4
 /// </summary>
-public record WebhookProcessedResponse(
+public record CommandProcessedResponse(
     bool Success,
     string? ErrorMessage = null,
     DateTime ProcessedAt = default
 )
 {
-    public WebhookProcessedResponse() : this(true)
+    public CommandProcessedResponse() : this(true)
     {
         ProcessedAt = DateTime.UtcNow;
     }

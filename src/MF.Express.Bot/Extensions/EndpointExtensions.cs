@@ -1,6 +1,4 @@
 using MF.Express.Bot.Api.Endpoints;
-using MF.Express.Bot.Api.Endpoints.Groups;
-using System.Reflection;
 
 namespace MF.Express.Bot.Api.Extensions;
 
@@ -10,19 +8,16 @@ namespace MF.Express.Bot.Api.Extensions;
 public static class EndpointExtensions
 {
     /// <summary>
-    /// Простая регистрация всех endpoints (исходящие API и входящие webhook'и)
+    /// Регистрация основных endpoints для упрощенного MF бота
     /// </summary>
     public static WebApplication MapSimpleEndpoints(this WebApplication app)
     {
-        // Исходящие API endpoints
-        new RegisterUserEndpoint().MapEndpoint(app);
-        new SendAuthRequestEndpoint().MapEndpoint(app);
-        new SendMessageEndpoint().MapEndpoint(app);
-        new BotStatusEndpoint().MapEndpoint(app);
-
-        // Webhook endpoints для проверок (в будущем будут напрямую отправляться в Multifactor)
-        new IncomingMessageEndpoint().MapEndpoint(app);
-        new AuthCallbackEndpoint().MapEndpoint(app);
+        // Bot API v4 endpoints - основной функционал
+        new BotCommandEndpoint().MapEndpoint(app);   // Функции 1 и 3: прием команд от BotX
+        new BotStatusEndpoint().MapEndpoint(app);    // Статус бота для BotX
+        
+        // MF API endpoints - для взаимодействия с Multifactor API
+        new SendAuthRequestEndpoint().MapEndpoint(app);  // Функция 2: отправка запроса авторизации
 
         return app;
     }

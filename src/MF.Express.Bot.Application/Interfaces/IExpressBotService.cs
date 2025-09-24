@@ -4,7 +4,8 @@ using MF.Express.Bot.Application.DTOs;
 namespace MF.Express.Bot.Application.Interfaces;
 
 /// <summary>
-/// Интерфейс для работы с Express Bot API
+/// Интерфейс для работы с Bot API v4
+/// Обеспечивает отправку сообщений через Express.MS BotX
 /// </summary>
 public interface IExpressBotService
 {
@@ -24,17 +25,7 @@ public interface IExpressBotService
     Task<SendMessageResultDto> SendFileAsync(string chatId, Stream file, string fileName, CancellationToken cancellationToken = default);
     
     /// <summary>
-    /// Получает информацию о боте
+    /// Получает информацию о боте для Bot API v4
     /// </summary>
     Task<BotInfoDto> GetBotInfoAsync(CancellationToken cancellationToken = default);
-    
-    /// <summary>
-    /// Устанавливает webhook URL
-    /// </summary>
-    Task<bool> SetWebhookAsync(string webhookUrl, CancellationToken cancellationToken = default);
-    
-    /// <summary>
-    /// Удаляет webhook
-    /// </summary>
-    Task<bool> DeleteWebhookAsync(CancellationToken cancellationToken = default);
 }
