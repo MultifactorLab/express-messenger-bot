@@ -81,7 +81,7 @@ public class BotXApiService : IBotXApiService
     }
 
     /// <summary>
-    /// Отправляет сообщение с inline кнопками
+    /// Отправляет сообщение с bubble кнопками (кнопки под сообщением)
     /// </summary>
     public async Task<bool> SendMessageWithInlineKeyboardAsync(string chatId, string text, List<List<InlineKeyboardButton>> keyboard, CancellationToken cancellationToken = default)
     {
@@ -104,10 +104,11 @@ public class BotXApiService : IBotXApiService
                 {
                     status = "ok",
                     body = text,
-                    keyboard = keyboard.Select(row => row.Select(btn => new
+                    bubble = keyboard.Select(row => row.Select(btn => new
                     {
                         command = btn.Data,
-                        label = btn.Text
+                        label = btn.Text,
+                        opts = new { silent = true }
                     }))
                 }
             };

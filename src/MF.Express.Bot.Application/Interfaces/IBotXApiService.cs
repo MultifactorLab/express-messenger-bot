@@ -15,7 +15,7 @@ public interface IBotXApiService
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Отправить сообщение с inline кнопками
+    /// Отправить сообщение с bubble кнопками (кнопки под сообщением)
     /// </summary>
     Task<bool> SendMessageWithInlineKeyboardAsync(
         string chatId,
