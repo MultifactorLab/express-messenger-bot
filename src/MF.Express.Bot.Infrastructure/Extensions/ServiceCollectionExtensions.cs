@@ -4,6 +4,7 @@ using MF.Express.Bot.Application.Interfaces;
 using MF.Express.Bot.Application.Queries;
 using MF.Express.Bot.Infrastructure.Configuration;
 using MF.Express.Bot.Infrastructure.ExternalServices;
+using MF.Express.Bot.Infrastructure.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
@@ -20,6 +21,7 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddInfrastructure(this IServiceCollection services)
     {
         services.AddExpressBotService();
+        services.AddMultifactorApiService();
         services.AddCommandsAndQueries();
         
         return services;
@@ -30,7 +32,7 @@ public static class ServiceCollectionExtensions
     /// </summary>
     public static IServiceCollection AddExpressBotService(this IServiceCollection services)
     {
-        services.AddHttpClient<IExpressBotService, ExpressBotService>((serviceProvider, client) =>
+        services.AddHttpClient("ExpressBot", (serviceProvider, client) =>
         {
             var config = serviceProvider.GetRequiredService<IOptions<ExpressBotConfiguration>>().Value;
             client.BaseAddress = new Uri(config.ApiBaseUrl);
@@ -38,6 +40,8 @@ public static class ServiceCollectionExtensions
                 new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", config.BotToken);
             client.Timeout = TimeSpan.FromSeconds(config.RequestTimeoutSeconds);
         });
+
+        services.AddScoped<IExpressBotService, ExpressBotService>();
 
         return services;
     }
@@ -98,6 +102,24 @@ public static class ServiceCollectionExtensions
 
             services.AddScoped(interfaceType, handlerType);
         }
+
+        return services;
+    }
+
+    /// <summary>
+    /// Добавляет Multifactor API сервис
+    /// </summary>
+    public static IServiceCollection AddMultifactorApiService(this IServiceCollection services)
+    {
+        services.AddHttpClient("MultifactorApi", (serviceProvider, client) =>
+        {
+            var config = serviceProvider.GetRequiredService<IOptions<MultifactorApiConfiguration>>().Value;
+            client.BaseAddress = new Uri(config.BaseUrl);
+            client.DefaultRequestHeaders.Add("X-API-Key", config.ApiKey);
+            client.Timeout = TimeSpan.FromSeconds(config.TimeoutSeconds);
+        });
+
+        services.AddScoped<IMultifactorApiService, MultifactorApiService>();
 
         return services;
     }

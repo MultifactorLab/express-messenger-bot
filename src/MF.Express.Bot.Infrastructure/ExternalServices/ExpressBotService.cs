@@ -14,17 +14,17 @@ namespace MF.Express.Bot.Infrastructure.ExternalServices;
 /// </summary>
 public class ExpressBotService : IExpressBotService
 {
-    private readonly HttpClient _httpClient;
+    private readonly IHttpClientFactory _httpClientFactory;
     private readonly ExpressBotConfiguration _config;
     private readonly ILogger<ExpressBotService> _logger;
     private readonly JsonSerializerOptions _jsonOptions;
 
     public ExpressBotService(
-        HttpClient httpClient,
+        IHttpClientFactory httpClientFactory,
         IOptions<ExpressBotConfiguration> config,
         ILogger<ExpressBotService> logger)
     {
-        _httpClient = httpClient;
+        _httpClientFactory = httpClientFactory;
         _config = config.Value;
         _logger = logger;
         
@@ -33,16 +33,6 @@ public class ExpressBotService : IExpressBotService
             PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
             WriteIndented = false
         };
-
-        ConfigureHttpClient();
-    }
-
-    private void ConfigureHttpClient()
-    {
-        _httpClient.BaseAddress = new Uri(_config.ApiBaseUrl);
-        _httpClient.DefaultRequestHeaders.Authorization = 
-            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _config.BotToken);
-        _httpClient.Timeout = TimeSpan.FromSeconds(_config.RequestTimeoutSeconds);
     }
 
     public async Task<SendMessageResultDto> SendTextMessageAsync(string chatId, string text, CancellationToken cancellationToken = default)
@@ -51,6 +41,7 @@ public class ExpressBotService : IExpressBotService
         {
             _logger.LogDebug("Отправка текстового сообщения в чат {ChatId}", chatId);
 
+            var httpClient = _httpClientFactory.CreateClient("ExpressBot");
             var request = new
             {
                 chat_id = chatId,
@@ -61,7 +52,7 @@ public class ExpressBotService : IExpressBotService
             var json = JsonSerializer.Serialize(request, _jsonOptions);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            var response = await _httpClient.PostAsync("bot/sendMessage", content, cancellationToken);
+            var response = await httpClient.PostAsync("bot/sendMessage", content, cancellationToken);
             var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
 
             if (response.IsSuccessStatusCode)
@@ -92,6 +83,7 @@ public class ExpressBotService : IExpressBotService
         {
             _logger.LogDebug("Отправка сообщения с кнопками в чат {ChatId}", chatId);
 
+            var httpClient = _httpClientFactory.CreateClient("ExpressBot");
             var request = new
             {
                 chat_id = chatId,
@@ -112,7 +104,7 @@ public class ExpressBotService : IExpressBotService
             var json = JsonSerializer.Serialize(request, _jsonOptions);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            var response = await _httpClient.PostAsync("bot/sendMessage", content, cancellationToken);
+            var response = await httpClient.PostAsync("bot/sendMessage", content, cancellationToken);
             var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
 
             if (response.IsSuccessStatusCode)
@@ -143,11 +135,12 @@ public class ExpressBotService : IExpressBotService
         {
             _logger.LogDebug("Отправка файла {FileName} в чат {ChatId}", fileName, chatId);
 
+            var httpClient = _httpClientFactory.CreateClient("ExpressBot");
             using var content = new MultipartFormDataContent();
             content.Add(new StringContent(chatId), "chat_id");
             content.Add(new StreamContent(file), "document", fileName);
 
-            var response = await _httpClient.PostAsync("bot/sendDocument", content, cancellationToken);
+            var response = await httpClient.PostAsync("bot/sendDocument", content, cancellationToken);
             var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
 
             if (response.IsSuccessStatusCode)
@@ -178,7 +171,8 @@ public class ExpressBotService : IExpressBotService
         {
             _logger.LogDebug("Получение информации о боте");
 
-            var response = await _httpClient.GetAsync("bot/getMe", cancellationToken);
+            var httpClient = _httpClientFactory.CreateClient("ExpressBot");
+            var response = await httpClient.GetAsync("bot/getMe", cancellationToken);
             var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
 
             if (response.IsSuccessStatusCode)
@@ -209,6 +203,7 @@ public class ExpressBotService : IExpressBotService
         {
             _logger.LogInformation("Установка webhook URL: {WebhookUrl}", webhookUrl);
 
+            var httpClient = _httpClientFactory.CreateClient("ExpressBot");
             var request = new
             {
                 url = webhookUrl,
@@ -218,7 +213,7 @@ public class ExpressBotService : IExpressBotService
             var json = JsonSerializer.Serialize(request, _jsonOptions);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            var response = await _httpClient.PostAsync("bot/setWebhook", content, cancellationToken);
+            var response = await httpClient.PostAsync("bot/setWebhook", content, cancellationToken);
             
             if (response.IsSuccessStatusCode)
             {
@@ -244,7 +239,8 @@ public class ExpressBotService : IExpressBotService
         {
             _logger.LogInformation("Удаление webhook");
 
-            var response = await _httpClient.PostAsync("bot/deleteWebhook", null, cancellationToken);
+            var httpClient = _httpClientFactory.CreateClient("ExpressBot");
+            var response = await httpClient.PostAsync("bot/deleteWebhook", null, cancellationToken);
             
             if (response.IsSuccessStatusCode)
             {

@@ -1,24 +1,31 @@
 using MF.Express.Bot.Application.Commands;
 using MF.Express.Bot.Application.DTOs;
 
-namespace MF.Express.Bot.Api.Endpoints;
+namespace MF.Express.Bot.Api.Endpoints.Groups;
 
 /// <summary>
-/// Endpoint для регистрации пользователя в чате с ботом
+/// Группа endpoints для управления пользователями
 /// </summary>
-public class RegisterUserEndpoint : IEndpoint
+public static class UserEndpointsGroup
 {
-    public void MapEndpoint(IEndpointRouteBuilder app)
+    /// <summary>
+    /// Регистрирует группу endpoints для пользователей
+    /// </summary>
+    public static RouteGroupBuilder MapUserEndpoints(this IEndpointRouteBuilder builder)
     {
-        app.MapPost("/register-user", HandleAsync)
+        var group = builder.MapGroup("/users")
+            .WithTags("User Management")
+            .WithOpenApi();
+
+        group.MapPost("/register", RegisterUserAsync)
             .WithName("RegisterUser")
-            .WithOpenApi()
             .Produces<RegisterUserResultDto>()
-            .ProducesValidationProblem()
-            .WithTags("User Management");
+            .ProducesValidationProblem();
+
+        return group;
     }
 
-    private static async Task<IResult> HandleAsync(
+    private static async Task<IResult> RegisterUserAsync(
         RegisterUserRequestDto request,
         ICommand<RegisterUserCommand, RegisterUserResultDto> handler,
         CancellationToken ct)

@@ -13,8 +13,6 @@ public class SendMessageEndpoint : IEndpoint
         app.MapPost("/send", HandleAsync)
             .WithName("SendMessage")
             .WithOpenApi()
-            .WithSummary("Отправка сообщения через бота")
-            .WithDescription("Отправляет простое текстовое сообщение для тестирования")
             .Produces<SendMessageResultDto>()
             .ProducesValidationProblem()
             .WithTags("Testing");

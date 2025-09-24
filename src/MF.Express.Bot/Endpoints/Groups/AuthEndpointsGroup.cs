@@ -1,24 +1,31 @@
 using MF.Express.Bot.Application.Commands;
 using MF.Express.Bot.Application.DTOs;
 
-namespace MF.Express.Bot.Api.Endpoints;
+namespace MF.Express.Bot.Api.Endpoints.Groups;
 
 /// <summary>
-/// Endpoint для отправки запроса авторизации с кнопками подтверждения
+/// Группа endpoints для авторизации
 /// </summary>
-public class SendAuthRequestEndpoint : IEndpoint
+public static class AuthEndpointsGroup
 {
-    public void MapEndpoint(IEndpointRouteBuilder app)
+    /// <summary>
+    /// Регистрирует группу endpoints для авторизации
+    /// </summary>
+    public static RouteGroupBuilder MapAuthEndpoints(this IEndpointRouteBuilder builder)
     {
-        app.MapPost("/send-auth-request", HandleAsync)
+        var group = builder.MapGroup("/auth")
+            .WithTags("Authentication")
+            .WithOpenApi();
+
+        group.MapPost("/send-request", SendAuthRequestAsync)
             .WithName("SendAuthRequest")
-            .WithOpenApi()
             .Produces<SendAuthResultDto>()
-            .ProducesValidationProblem()
-            .WithTags("Authentication");
+            .ProducesValidationProblem();
+
+        return group;
     }
 
-    private static async Task<IResult> HandleAsync(
+    private static async Task<IResult> SendAuthRequestAsync(
         SendAuthRequestDto request,
         ICommand<SendAuthRequestCommand, SendAuthResultDto> handler,
         CancellationToken ct)

@@ -12,8 +12,6 @@ public class BotStatusEndpoint : IEndpoint
         app.MapGet("/status", HandleAsync)
             .WithName("GetBotStatus")
             .WithOpenApi()
-            .WithSummary("Получить статус бота")
-            .WithDescription("Возвращает информацию о состоянии бота и подключении к Express API")
             .Produces<BotStatusResponse>()
             .WithTags("Monitoring");
     }
@@ -28,8 +26,7 @@ public class BotStatusEndpoint : IEndpoint
         {
             BotInfo = botInfo,
             Status = botInfo.IsActive ? "Running" : "Inactive",
-            Timestamp = DateTime.UtcNow,
-            Version = typeof(BotStatusEndpoint).Assembly.GetName().Version?.ToString() ?? "Unknown"
+            Timestamp = DateTime.UtcNow
         };
 
         return Results.Ok(response);
@@ -44,5 +41,4 @@ public record BotStatusResponse
     public required object BotInfo { get; init; }
     public required string Status { get; init; }
     public required DateTime Timestamp { get; init; }
-    public required string Version { get; init; }
 }

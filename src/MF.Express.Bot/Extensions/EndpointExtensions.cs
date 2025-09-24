@@ -10,42 +10,20 @@ namespace MF.Express.Bot.Api.Extensions;
 public static class EndpointExtensions
 {
     /// <summary>
-    /// Регистрирует все endpoints, реализующие IEndpoint
-    /// </summary>
-    public static WebApplication MapEndpoints(this WebApplication app)
-    {
-        var endpoints = GetEndpoints();
-
-        foreach (var endpoint in endpoints)
-        {
-            endpoint.MapEndpoint(app);
-        }
-
-        return app;
-    }
-
-    /// <summary>
-    /// Альтернативный способ - простая регистрация без группировки
+    /// Простая регистрация всех endpoints (исходящие API и входящие webhook'и)
     /// </summary>
     public static WebApplication MapSimpleEndpoints(this WebApplication app)
     {
+        // Исходящие API endpoints
         new RegisterUserEndpoint().MapEndpoint(app);
         new SendAuthRequestEndpoint().MapEndpoint(app);
         new SendMessageEndpoint().MapEndpoint(app);
         new BotStatusEndpoint().MapEndpoint(app);
 
+        // Webhook endpoints для проверок (в будущем будут напрямую отправляться в Multifactor)
+        new IncomingMessageEndpoint().MapEndpoint(app);
+        new AuthCallbackEndpoint().MapEndpoint(app);
+
         return app;
-    }
-
-    private static IEnumerable<IEndpoint> GetEndpoints()
-    {
-        var endpointType = typeof(IEndpoint);
-        var assembly = Assembly.GetExecutingAssembly();
-
-        return assembly.GetTypes()
-            .Where(type => type is { IsClass: true, IsAbstract: false } && 
-                          type.IsAssignableTo(endpointType))
-            .Select(Activator.CreateInstance)
-            .Cast<IEndpoint>();
     }
 }

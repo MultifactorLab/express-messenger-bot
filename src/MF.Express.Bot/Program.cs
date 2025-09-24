@@ -34,6 +34,11 @@ builder.Services.AddOptions<ExpressBotConfiguration>()
     .ValidateDataAnnotations()
     .ValidateOnStart();
 
+builder.Services.AddOptions<MultifactorApiConfiguration>()
+    .BindConfiguration(MultifactorApiConfiguration.SectionName)
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
+
 // Infrastructure services
 builder.Services.AddInfrastructure();
 
@@ -63,13 +68,7 @@ if (app.Environment.IsDevelopment())
 // Health checks
 app.MapHealthChecks("/healthz");
 
-// Express Bot Endpoints - чистая регистрация без захламления Program.cs
-// Можно выбрать один из подходов:
-
-// 1. Простая регистрация всех endpoints
+// Express Bot Endpoints - простая регистрация всех endpoints
 app.MapSimpleEndpoints();
-
-// 2. Альтернативно - группировка endpoints по функциональности (раскомментируйте при необходимости)
-// app.MapBotEndpoints();
 
 app.Run();
