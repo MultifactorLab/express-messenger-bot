@@ -25,12 +25,12 @@ public record ProcessIncomingMessageCommand(
 public class ProcessIncomingMessageHandler : ICommand<ProcessIncomingMessageCommand, CommandProcessedResponse>
 {
     private readonly IMultifactorApiService _multifactorApiService;
-    private readonly IExpressBotService _expressBotService;
+    private readonly IBotXApiService _expressBotService;
     private readonly ILogger<ProcessIncomingMessageHandler> _logger;
 
     public ProcessIncomingMessageHandler(
         IMultifactorApiService multifactorApiService,
-        IExpressBotService expressBotService,
+        IBotXApiService expressBotService,
         ILogger<ProcessIncomingMessageHandler> logger)
     {
         _multifactorApiService = multifactorApiService;

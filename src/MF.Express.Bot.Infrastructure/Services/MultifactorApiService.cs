@@ -27,7 +27,6 @@ public class MultifactorApiService : IMultifactorApiService
         _configuration = configuration.Value;
         _logger = logger;
 
-        // Настройка JSON сериализации
         _jsonOptions = new JsonSerializerOptions
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -126,6 +125,38 @@ public class MultifactorApiService : IMultifactorApiService
         {
             _logger.LogError(ex, "Исключение при запросе информации о пользователе {UserId} из Multifactor API", userId);
             return null;
+        }
+    }
+
+    public async Task<bool> SendUserStartCommandDataAsync(UserStartCommandDataDto userData, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogInformation("Отправка данных пользователя {UserId} при команде /start в Multifactor API", userData.UserId);
+
+            var httpClient = _httpClientFactory.CreateClient("MultifactorApi");
+            var json = JsonSerializer.Serialize(userData, _jsonOptions);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            var endpoint = _configuration.UserStartCommandEndpoint ?? "/api/bot/user-start-data";
+            var response = await httpClient.PostAsync(endpoint, content, cancellationToken);
+            
+            if (response.IsSuccessStatusCode)
+            {
+                _logger.LogInformation("Данные пользователя {UserId} при команде /start успешно отправлены в Multifactor API", userData.UserId);
+                return true;
+            }
+
+            var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
+            _logger.LogWarning("Ошибка при отправке данных пользователя при команде /start в Multifactor API. Status: {Status}, Content: {Content}", 
+                response.StatusCode, responseContent);
+            
+            return false;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Исключение при отправке данных пользователя {UserId} при команде /start в Multifactor API", userData.UserId);
+            return false;
         }
     }
 }

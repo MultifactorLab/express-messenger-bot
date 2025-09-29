@@ -21,6 +21,11 @@ public interface IMultifactorApiService
     /// Получает дополнительную информацию о пользователе из Multifactor API (если нужно)
     /// </summary>
     Task<UserInfoResponse?> GetUserInfoAsync(string userId, CancellationToken cancellationToken = default);
+    
+    /// <summary>
+    /// Отправляет полные данные пользователя в Multifactor API при команде /start
+    /// </summary>
+    Task<bool> SendUserStartCommandDataAsync(UserStartCommandDataDto userData, CancellationToken cancellationToken = default);
 }
 
 /// <summary>

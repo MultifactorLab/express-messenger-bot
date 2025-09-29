@@ -54,3 +54,23 @@ public record AuthorizationResultDto(
     DateTime ProcessedAt,
     string? AdditionalInfo = null
 );
+
+/// <summary>
+/// DTO для отправки полных данных пользователя в Multifactor API при команде /start
+/// </summary>
+public record UserStartCommandDataDto(
+    string UserId,
+    string ChatId,
+    string? Username,
+    string? FirstName,
+    string? LastName,
+    string? AdLogin,
+    string? AdDomain,
+    string? ChatType,
+    DateTime Timestamp,
+    string? Platform,
+    string? AppVersion,
+    string? Device,
+    string? Locale,
+    Dictionary<string, object>? Metadata = null
+);

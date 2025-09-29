@@ -23,6 +23,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\MF.Express.Bot.Infrastructure\MF.Express.Bot.Infrastructure.csproj" />
+        <ProjectReference Include="..\MF.Express.Bot.Application\MF.Express.Bot.Application.csproj" />
     </ItemGroup>
 
 </Project>

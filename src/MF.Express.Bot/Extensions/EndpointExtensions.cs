@@ -12,12 +12,11 @@ public static class EndpointExtensions
     /// </summary>
     public static WebApplication MapSimpleEndpoints(this WebApplication app)
     {
-        // Bot API v4 endpoints - основной функционал
-        new BotCommandEndpoint().MapEndpoint(app);   // Функции 1 и 3: прием команд от BotX
-        new BotStatusEndpoint().MapEndpoint(app);    // Статус бота для BotX
+        new BotCommandEndpoint().MapEndpoint(app);
+        new BotStatusEndpoint().MapEndpoint(app);
+        new NotificationCallbackEndpoint().MapEndpoint(app);
         
-        // MF API endpoints - для взаимодействия с Multifactor API
-        new SendAuthRequestEndpoint().MapEndpoint(app);  // Функция 2: отправка запроса авторизации
+        new SendAuthRequestEndpoint().MapEndpoint(app);
 
         return app;
     }

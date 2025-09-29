@@ -12,10 +12,8 @@ public class SendAuthRequestEndpoint : IEndpoint
     {
         app.MapPost("/send-auth-request", HandleAsync)
             .WithName("SendAuthRequest")
-            .WithOpenApi()
             .Produces<SendAuthResultDto>()
-            .ProducesValidationProblem()
-            .WithTags("Authentication");
+            .ProducesValidationProblem();
     }
 
     private static async Task<IResult> HandleAsync(

@@ -2,10 +2,10 @@ using System.Net.Http.Json;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using MF.Express.Bot.Application.Interfaces;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MF.Express.Bot.Infrastructure.Configuration;
-using MF.Express.Bot.Application.Interfaces;
 
 namespace MF.Express.Bot.Infrastructure.Services;
 

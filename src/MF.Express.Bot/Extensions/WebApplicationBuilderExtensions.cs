@@ -2,14 +2,8 @@ using Serilog;
 
 namespace MF.Express.Bot.Api.Extensions;
 
-/// <summary>
-/// Расширения для WebApplicationBuilder
-/// </summary>
 public static class WebApplicationBuilderExtensions
 {
-    /// <summary>
-    /// Настраивает логирование с Serilog
-    /// </summary>
     public static WebApplicationBuilder UseLogging(this WebApplicationBuilder builder)
     {
         builder.Logging.ClearProviders();

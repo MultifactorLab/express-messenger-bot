@@ -21,11 +21,11 @@ public record SendAuthRequestCommand(
 /// </summary>
 public class SendAuthRequestHandler : ICommand<SendAuthRequestCommand, SendAuthResultDto>
 {
-    private readonly IExpressBotService _expressBotService;
+    private readonly IBotXApiService _expressBotService;
     private readonly ILogger<SendAuthRequestHandler> _logger;
 
     public SendAuthRequestHandler(
-        IExpressBotService expressBotService,
+        IBotXApiService expressBotService,
         ILogger<SendAuthRequestHandler> logger)
     {
         _expressBotService = expressBotService;
@@ -36,41 +36,25 @@ public class SendAuthRequestHandler : ICommand<SendAuthRequestCommand, SendAuthR
     {
         try
         {
-            _logger.LogInformation("Отправка запроса авторизации {AuthRequestId} пользователю {UserId} в чат {ChatId}", 
+            _logger.LogInformation("Отправка запроса авторизации {AuthRequestId} пользователю {UserId} в чат {ChatId}",
                 command.AuthRequestId, command.UserId, command.ChatId);
 
             var messageText = FormatAuthMessage(command);
             var inlineKeyboard = CreateAuthButtons(command.AuthRequestId);
 
-            var result = await _expressBotService.SendMessageWithButtonsAsync(
+            var success = await _expressBotService.SendMessageWithInlineKeyboardAsync(
                 command.ChatId,
                 messageText,
                 inlineKeyboard,
                 cancellationToken);
 
-            if (result.Success)
-            {
-                _logger.LogInformation("Запрос авторизации {AuthRequestId} успешно отправлен. MessageId: {MessageId}", 
-                    command.AuthRequestId, result.MessageId);
-                
-                return new SendAuthResultDto(
-                    Success: true,
-                    MessageId: result.MessageId,
-                    Timestamp: DateTime.UtcNow);
-            }
+            return success ? new SendAuthResultDto { Success = true } : new SendAuthResultDto { Success = false };
 
-            _logger.LogWarning("Ошибка при отправке запроса авторизации {AuthRequestId}: {Error}", 
-                command.AuthRequestId, result.ErrorMessage);
-                
-            return new SendAuthResultDto(
-                Success: false,
-                ErrorMessage: result.ErrorMessage,
-                Timestamp: DateTime.UtcNow);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Ошибка при отправке запроса авторизации {AuthRequestId}", command.AuthRequestId);
-            
+
             return new SendAuthResultDto(
                 Success: false,
                 ErrorMessage: ex.Message,
@@ -95,26 +79,17 @@ public class SendAuthRequestHandler : ICommand<SendAuthRequestCommand, SendAuthR
             """;
     }
 
-    private static InlineKeyboardMarkup CreateAuthButtons(string authRequestId)
+    private static List<List<InlineKeyboardButton>> CreateAuthButtons(string authRequestId)
     {
-        return new InlineKeyboardMarkup(new[]
-        {
-            new InlineKeyboardButton[]
+        return
+        [
+            new List<InlineKeyboardButton>()
             {
                 new("✅ Разрешить", $"auth_allow_{authRequestId}"),
-                new("❌ Отклонить", $"auth_deny_{authRequestId}")
+                new("❌ Отклонить", $"auth_deny_{authRequestId}")    
             }
-        });
+        ];
     }
 }
 
-/// <summary>
-/// Inline клавиатура для кнопок
-/// </summary>
-public record InlineKeyboardMarkup(InlineKeyboardButton[][] Keyboard);
-
-/// <summary>
-/// Кнопка inline клавиатуры
-/// </summary>
-public record InlineKeyboardButton(string Text, string CallbackData);
 

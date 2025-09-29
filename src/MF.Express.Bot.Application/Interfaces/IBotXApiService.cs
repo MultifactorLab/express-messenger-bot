@@ -17,7 +17,7 @@ public interface IBotXApiService
     /// <summary>
     /// Отправить сообщение с bubble кнопками (кнопки под сообщением)
     /// </summary>
-    Task<bool> SendMessageWithInlineKeyboardAsync(
+    Task<bool>  SendMessageWithInlineKeyboardAsync(
         string chatId,
         string text,
         List<List<InlineKeyboardButton>> keyboard,
@@ -55,4 +55,30 @@ public record BotXUserInfo(
     string? Username,
     string? AdLogin,
     string? AdDomain
+);
+
+/// <summary>
+/// Ответ на запрос статуса бота
+/// </summary>
+public record BotStatusResponse(
+    string Status,
+    BotStatusResult? Result
+);
+
+/// <summary>
+/// Результат запроса статуса бота
+/// </summary>
+public record BotStatusResult(
+    bool Enabled,
+    string? StatusMessage,
+    List<BotCommand> Commands
+);
+
+/// <summary>
+/// Команда бота
+/// </summary>
+public record BotCommand(
+    string Name,
+    string Body,
+    string Description
 );

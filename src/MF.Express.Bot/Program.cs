@@ -11,10 +11,8 @@ using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Настройка логирования
 builder.UseLogging();
 
-// API Documentation
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -26,14 +24,11 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-// JWT для Bot API v4
 builder.Services.AddAuthentication();
 
-// Валидация
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 
-// Конфигурация
 builder.Services.AddOptions<ExpressBotConfiguration>()
     .BindConfiguration(ExpressBotConfiguration.SectionName)
     .ValidateDataAnnotations()
@@ -44,7 +39,6 @@ builder.Services.AddOptions<MultifactorApiConfiguration>()
     .ValidateDataAnnotations()
     .ValidateOnStart();
 
-// HTTP Clients для BotX API
 builder.Services.AddHttpClient("BotX", (serviceProvider, client) =>
 {
     var config = serviceProvider.GetRequiredService<IOptions<ExpressBotConfiguration>>().Value;
@@ -52,42 +46,35 @@ builder.Services.AddHttpClient("BotX", (serviceProvider, client) =>
     client.Timeout = TimeSpan.FromSeconds(config.RequestTimeoutSeconds);
 });
 
-// Infrastructure services
 builder.Services.AddInfrastructure();
 
-// BotX API Service
-builder.Services.AddScoped<IBotXApiService, BotXApiService>();
+builder.Services.AddApplication();
 
-// Exception handling
+
 builder.Services.AddExceptionHandler<ExpressBotExceptionHandler>();
 builder.Services.AddProblemDetails();
 
-// Health checks
 builder.Services.AddMfHealthChecks();
 
 var app = builder.Build();
 
-// Pipeline
 app.UseExceptionHandler();
 app.UseSerilogRequestLogging();
 
-// JWT валидация для Bot API v4 endpoints
 app.UseBotXJwtValidation();
 
-if (app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "Local")
 {
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "MF Express Bot API v4");
-        c.RoutePrefix = string.Empty; // Swagger UI на корневом пути
+        c.RoutePrefix = "swagger";
     });
 }
 
-// Health checks
 app.MapHealthChecks("/healthz");
 
-// Bot API v4 Endpoints
 app.MapSimpleEndpoints();
 
 app.Run();

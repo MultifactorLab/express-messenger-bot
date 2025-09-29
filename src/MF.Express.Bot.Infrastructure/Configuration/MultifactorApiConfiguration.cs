@@ -40,4 +40,9 @@ public class MultifactorApiConfiguration
     /// Endpoint для отправки результата авторизации
     /// </summary>
     public string AuthorizationResultEndpoint { get; set; } = "/api/bot/authorization-result";
+
+    /// <summary>
+    /// Endpoint для отправки данных пользователя при команде /start
+    /// </summary>
+    public string UserStartCommandEndpoint { get; set; } = "/api/bot/user-start-data";
 }

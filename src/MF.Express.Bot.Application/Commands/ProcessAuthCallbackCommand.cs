@@ -24,12 +24,12 @@ public record ProcessAuthCallbackCommand(
 public class ProcessAuthCallbackHandler : ICommand<ProcessAuthCallbackCommand, CommandProcessedResponse>
 {
     private readonly IMultifactorApiService _multifactorApiService;
-    private readonly IExpressBotService _expressBotService;
+    private readonly IBotXApiService _expressBotService;
     private readonly ILogger<ProcessAuthCallbackHandler> _logger;
 
     public ProcessAuthCallbackHandler(
         IMultifactorApiService multifactorApiService,
-        IExpressBotService expressBotService,
+        IBotXApiService expressBotService,
         ILogger<ProcessAuthCallbackHandler> logger)
     {
         _multifactorApiService = multifactorApiService;

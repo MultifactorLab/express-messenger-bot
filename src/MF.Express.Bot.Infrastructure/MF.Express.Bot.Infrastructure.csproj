@@ -14,8 +14,12 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\MF.Express.Bot.Domain\MF.Express.Bot.Domain.csproj" />
         <ProjectReference Include="..\MF.Express.Bot.Application\MF.Express.Bot.Application.csproj" />
+        <ProjectReference Include="..\MF.Express.Bot.Domain\MF.Express.Bot.Domain.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="ExternalServices\" />
     </ItemGroup>
 
 </Project>
