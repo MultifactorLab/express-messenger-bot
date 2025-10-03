@@ -7,7 +7,6 @@
 **/.vs
 **/.vscode
 **/.idea
-**/.cursor
 **/.project
 **/.settings
 **/*.user
@@ -42,23 +41,9 @@ README.md
 LICENSE
 **/*.md
 !docs/*.md
-env.template
-env.example
 
 # Temporary files
 **/*.tmp
 **/*.temp
 **/docker-data
-
-# Node (if any)
-**/node_modules
-**/npm-debug.log
-
-# Azure & K8s
-**/azds.yaml
-**/charts
-**/secrets.dev.yaml
-**/values.dev.yaml
-**/*.dbmdl
-**/*.jfm
 
