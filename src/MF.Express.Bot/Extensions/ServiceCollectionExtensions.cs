@@ -6,6 +6,9 @@ using Microsoft.Extensions.Options;
 
 namespace MF.Express.Bot.Api.Extensions;
 
+/// <summary>
+/// Расширения для IServiceCollection в API слое
+/// </summary>
 public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddApplication(this IServiceCollection services)
@@ -24,15 +27,21 @@ public static class ServiceCollectionExtensions
     /// Liveness - проверяет базовое состояние приложения
     /// Readiness - проверяет готовность к обработке запросов (внешние зависимости)
     /// </summary>
-    public static IServiceCollection AddHealthChecks(this IServiceCollection services)
+    public static IServiceCollection AddExpressBotHealthChecks(this IServiceCollection services)
     {
         HealthCheckServiceCollectionExtensions.AddHealthChecks(services)
+            // Liveness check - базовая проверка что приложение работает
             .AddCheck("self", () => HealthCheckResult.Healthy("Application is running"))
+            // Readiness checks - проверка внешних зависимостей
             .AddCheck<BotXApiHealthCheck>("botx_api", tags: new[] { "ready" })
             .AddCheck<MultifactorApiHealthCheck>("multifactor_api", tags: new[] { "ready" });
 
         return services;
     }
+    
+    /// <summary>
+    /// Автоматическая регистрация всех обработчиков команд из указанной сборки
+    /// </summary>
     private static IServiceCollection AddCommands(this IServiceCollection services, Assembly assembly)
     {
         var commandHandlerType = typeof(ICommand<,>);

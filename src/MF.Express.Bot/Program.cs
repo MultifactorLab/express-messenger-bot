@@ -6,7 +6,6 @@ using MF.Express.Bot.Api.Middleware;
 using MF.Express.Bot.Infrastructure.Configuration;
 using MF.Express.Bot.Infrastructure.Extensions;
 using Serilog;
-using ServiceCollectionExtensions = MF.Express.Bot.Api.Extensions.ServiceCollectionExtensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -40,6 +39,7 @@ builder.Services.AddInfrastructure();
 builder.Services.AddApplication();
 builder.Services.AddExceptionHandler<ExpressBotExceptionHandler>();
 builder.Services.AddProblemDetails();
+builder.Services.AddExpressBotHealthChecks();
 
 var app = builder.Build();
 
@@ -57,7 +57,6 @@ if (app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "Local
         c.RoutePrefix = "swagger";
     });
 }
-ServiceCollectionExtensions.AddHealthChecks(builder.Services);
 
 app.MapHealthChecks("/health/live");
 app.MapHealthChecks("/health/ready", new HealthCheckOptions
