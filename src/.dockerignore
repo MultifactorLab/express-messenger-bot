@@ -1,0 +1,64 @@
+# Git
+**/.git
+**/.gitignore
+**/.gitattributes
+
+# IDEs & Editors
+**/.vs
+**/.vscode
+**/.idea
+**/.cursor
+**/.project
+**/.settings
+**/*.user
+**/*.suo
+**/*.DotSettings.user
+
+# Build artifacts
+**/bin
+**/obj
+**/out
+**/publish
+
+# Logs
+**/logs
+**/Logs
+**/*.log
+
+# Docker files
+**/.dockerignore
+**/docker-compose*
+**/Dockerfile*
+
+# Environment variables
+**/.env
+**/.env.*
+**/appsettings.Local.json
+**/appsettings.Development.json
+**/appsettings.Production.json
+
+# Documentation & configs
+README.md
+LICENSE
+**/*.md
+!docs/*.md
+env.template
+env.example
+
+# Temporary files
+**/*.tmp
+**/*.temp
+**/docker-data
+
+# Node (if any)
+**/node_modules
+**/npm-debug.log
+
+# Azure & K8s
+**/azds.yaml
+**/charts
+**/secrets.dev.yaml
+**/values.dev.yaml
+**/*.dbmdl
+**/*.jfm
+
