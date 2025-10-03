@@ -4,7 +4,8 @@
       "Default": "Information",
       "Override": {
         "Microsoft": "Warning",
-        "Microsoft.Hosting.Lifetime": "Information",
+        "Microsoft.AspNetCore": "Warning",
+        "Microsoft.AspNetCore.Hosting.Diagnostics": "Information",
         "System": "Warning"
       }
     },
@@ -12,25 +13,31 @@
       {
         "Name": "Console",
         "Args": {
-          "formatter": "Serilog.Formatting.Elasticsearch.ElasticsearchJsonFormatter, Serilog.Formatting.Elasticsearch"
+          "restrictedToMinimumLevel": "Warning",
+          "outputTemplate": "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}"
         }
       },
       {
-        "Name": "File",
+        "Name": "Async",
         "Args": {
-          "path": "Logs/express-bot-.log",
-          "rollingInterval": "Day",
-          "retainedFileCountLimit": 30,
-          "formatter": "Serilog.Formatting.Elasticsearch.ElasticsearchJsonFormatter, Serilog.Formatting.Elasticsearch"
+          "configure": [
+            {
+              "Name": "File",
+              "Args": {
+                "path": "Logs/express-bot-.log",
+                "rollingInterval": "Day",
+                "retainedFileCountLimit": 14,
+                "outputTemplate": "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}",
+                "buffered": true
+              }
+            }
+          ],
+          "bufferSize": 1000
         }
       }
     ],
     "Enrich": [
-      "FromLogContext",
-      "WithMachineName",
-      "WithProcessId",
-      "WithThreadId"
+      "FromLogContext"
     ]
   }
 }
-

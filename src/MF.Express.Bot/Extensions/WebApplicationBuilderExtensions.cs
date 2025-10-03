@@ -15,9 +15,7 @@ public static class WebApplicationBuilderExtensions
         builder.Services.AddHttpContextAccessor();
 
         builder.Host.UseSerilog((context, loggerConfiguration) => loggerConfiguration
-            .Enrich.FromLogContext()
-            .ReadFrom.Configuration(context.Configuration)
-            .WriteTo.Console());
+            .ReadFrom.Configuration(context.Configuration));
 
         return builder;
     }
