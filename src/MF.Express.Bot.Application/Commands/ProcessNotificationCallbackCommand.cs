@@ -1,5 +1,5 @@
 using Microsoft.Extensions.Logging;
-using MF.Express.Bot.Application.DTOs;
+using MF.Express.Bot.Application.Models.NotificationCallback;
 
 namespace MF.Express.Bot.Application.Commands;
 
@@ -16,10 +16,7 @@ public record ProcessNotificationCallbackCommand(
     object? ErrorData
 );
 
-/// <summary>
-/// Обработчик команды ProcessNotificationCallback
-/// </summary>
-public class ProcessNotificationCallbackHandler : ICommand<ProcessNotificationCallbackCommand, NotificationCallbackResult>
+public class ProcessNotificationCallbackHandler : ICommand<ProcessNotificationCallbackCommand, NotificationResultAppModel>
 {
     private readonly ILogger<ProcessNotificationCallbackHandler> _logger;
 
@@ -28,7 +25,7 @@ public class ProcessNotificationCallbackHandler : ICommand<ProcessNotificationCa
         _logger = logger;
     }
 
-    public async Task<NotificationCallbackResult> Handle(ProcessNotificationCallbackCommand command, CancellationToken cancellationToken)
+    public async Task<NotificationResultAppModel> Handle(ProcessNotificationCallbackCommand command, CancellationToken cancellationToken)
     {
         try
         {
@@ -45,35 +42,35 @@ public class ProcessNotificationCallbackHandler : ICommand<ProcessNotificationCa
         catch (Exception ex)
         {
             _logger.LogError(ex, "Ошибка при обработке notification callback {SyncId}", command.SyncId);
-            return new NotificationCallbackResult(false, $"Внутренняя ошибка: {ex.Message}");
+            return new NotificationResultAppModel(false, $"Внутренняя ошибка: {ex.Message}");
         }
     }
 
-    private async Task<NotificationCallbackResult> HandleSuccessCallback(ProcessNotificationCallbackCommand command, CancellationToken cancellationToken)
+    private async Task<NotificationResultAppModel> HandleSuccessCallback(ProcessNotificationCallbackCommand command, CancellationToken cancellationToken)
     {
         _logger.LogInformation("Сообщение {SyncId} успешно обработано. Результат: {Result}", 
             command.SyncId, command.Result);
 
         await Task.CompletedTask;
         
-        return new NotificationCallbackResult(true, Status: NotificationStatus.Delivered);
+        return new NotificationResultAppModel(true, Status: NotificationStatus.Delivered);
     }
 
-    private async Task<NotificationCallbackResult> HandleErrorCallback(ProcessNotificationCallbackCommand command, CancellationToken cancellationToken)
+    private async Task<NotificationResultAppModel> HandleErrorCallback(ProcessNotificationCallbackCommand command, CancellationToken cancellationToken)
     {
         _logger.LogWarning("Ошибка при обработке сообщения {SyncId}. Причина: {Reason}, Ошибки: {Errors}, Данные: {ErrorData}", 
             command.SyncId, command.Reason, command.Errors != null ? string.Join(", ", command.Errors) : "нет", command.ErrorData);
 
         await Task.CompletedTask;
         
-        return new NotificationCallbackResult(true, Status: NotificationStatus.Failed);
+        return new NotificationResultAppModel(true, Status: NotificationStatus.Failed);
     }
 
-    private NotificationCallbackResult HandleUnknownStatus(ProcessNotificationCallbackCommand command)
+    private NotificationResultAppModel HandleUnknownStatus(ProcessNotificationCallbackCommand command)
     {
         _logger.LogWarning("Неизвестный статус notification callback: {Status} для {SyncId}", 
             command.Status, command.SyncId);
         
-        return new NotificationCallbackResult(true);
+        return new NotificationResultAppModel(true);
     }
 }

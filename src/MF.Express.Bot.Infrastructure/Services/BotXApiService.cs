@@ -3,6 +3,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using MF.Express.Bot.Application.Interfaces;
+using MF.Express.Bot.Application.Models.BotX;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MF.Express.Bot.Infrastructure.Configuration;
@@ -83,7 +84,7 @@ public class BotXApiService : IBotXApiService
     /// <summary>
     /// Отправляет сообщение с bubble кнопками (кнопки под сообщением)
     /// </summary>
-    public async Task<bool> SendMessageWithInlineKeyboardAsync(string chatId, string text, List<List<InlineKeyboardButton>> keyboard, CancellationToken cancellationToken = default)
+    public async Task<bool> SendMessageWithInlineKeyboardAsync(string chatId, string text, List<List<InlineKeyboardButtonModel>> keyboard, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -140,7 +141,6 @@ public class BotXApiService : IBotXApiService
     /// </summary>
     private async Task<string?> GetBotTokenAsync(CancellationToken cancellationToken)
     {
-        // Проверяем, есть ли действующий токен
         if (!string.IsNullOrEmpty(_cachedToken) && DateTime.UtcNow < _tokenExpiresAt)
         {
             return _cachedToken;
@@ -149,7 +149,6 @@ public class BotXApiService : IBotXApiService
         await _tokenSemaphore.WaitAsync(cancellationToken);
         try
         {
-            // Повторная проверка после получения семафора
             if (!string.IsNullOrEmpty(_cachedToken) && DateTime.UtcNow < _tokenExpiresAt)
             {
                 return _cachedToken;
@@ -176,7 +175,7 @@ public class BotXApiService : IBotXApiService
             if (jsonDoc.RootElement.TryGetProperty("result", out var resultElement))
             {
                 _cachedToken = resultElement.GetString();
-                _tokenExpiresAt = DateTime.UtcNow.AddMinutes(55); // Токены обычно живут 1 час, берем с запасом
+                _tokenExpiresAt = DateTime.UtcNow.AddMinutes(55);
                 
                 _logger.LogInformation("Токен для бота успешно получен, действует до {ExpiresAt}", _tokenExpiresAt);
                 return _cachedToken;
@@ -260,7 +259,7 @@ public class BotXApiService : IBotXApiService
     /// <summary>
     /// Получить информацию о пользователе
     /// </summary>
-    public async Task<BotXUserInfo?> GetUserInfoAsync(string userHuid, CancellationToken cancellationToken = default)
+    public async Task<BotXUserInfoModel?> GetUserInfoAsync(string userHuid, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -279,7 +278,7 @@ public class BotXApiService : IBotXApiService
             if (response.IsSuccessStatusCode)
             {
                 var jsonContent = await response.Content.ReadAsStringAsync(cancellationToken);
-                var userInfo = JsonSerializer.Deserialize<BotXUserInfo>(jsonContent);
+                var userInfo = JsonSerializer.Deserialize<BotXUserInfoModel>(jsonContent);
                 
                 _logger.LogDebug("Информация о пользователе {UserHuid} получена", userHuid);
                 return userInfo;

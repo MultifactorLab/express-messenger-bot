@@ -1,5 +1,8 @@
 using MF.Express.Bot.Application.Commands;
-using MF.Express.Bot.Application.DTOs;
+using MF.Express.Bot.Api.DTOs.BotCommand;
+using MF.Express.Bot.Api.DTOs.Common;
+using MF.Express.Bot.Api.DTOs.NotificationCallback;
+using MF.Express.Bot.Application.Models.NotificationCallback;
 using Microsoft.Extensions.Options;
 using MF.Express.Bot.Infrastructure.Configuration;
 
@@ -15,69 +18,51 @@ public class NotificationCallbackEndpoint : IEndpoint
     {
         app.MapPost("/notification/callback", HandleAsync)
             .WithName("HandleNotificationCallback")
-            .Produces<BotApiResponse>(202)
-            .Produces<BotApiErrorResponse>(503);
+            .Produces<BotApiResponseDto>(202)
+            .Produces<BotApiErrorResponseDto>(503);
     }
 
     private static async Task<IResult> HandleAsync(
-        NotificationCallbackDto callback,
-        ICommand<ProcessNotificationCallbackCommand, NotificationCallbackResult> handler,
+        NotificationCallbackDto dto,
+        ICommand<ProcessNotificationCallbackCommand, NotificationResultAppModel> handler,
         IOptions<ExpressBotConfiguration> config,
         ILogger<NotificationCallbackEndpoint> logger,
         CancellationToken ct)
     {
         try
         {
-            if (callback.Result != null)
+            if (dto.Errors != null && dto.Errors.Length != 0)
             {
-                logger.LogInformation("Result: {Result}", System.Text.Json.JsonSerializer.Serialize(callback.Result));
-            }
-            
-            if (callback.Errors?.Any() == true)
-            {
-                logger.LogWarning("Errors: {Errors}", string.Join(", ", callback.Errors));
-            }
-            
-            if (callback.ErrorData != null)
-            {
-                logger.LogWarning("ErrorData: {ErrorData}", System.Text.Json.JsonSerializer.Serialize(callback.ErrorData));
+                logger.LogWarning("Errors: {Errors}", string.Join(", ", dto.Errors));
             }
 
-            switch (callback.Status?.ToLowerInvariant())
+            switch (dto.Status?.ToLowerInvariant())
             {
                 case "ok":
-                    logger.LogInformation("Сообщение {SyncId} успешно доставлено", callback.SyncId);
+                    logger.LogInformation("Сообщение {SyncId} успешно доставлено", dto.SyncId);
                     break;
                 case "error":
                     logger.LogError("Ошибка доставки сообщения {SyncId}: {Reason}", 
-                        callback.SyncId, callback.Reason);
+                        dto.SyncId, dto.Reason);
                     break;
                 default:
                     logger.LogWarning("Неизвестный статус callback'а {SyncId}: {Status}", 
-                        callback.SyncId, callback.Status);
+                        dto.SyncId, dto.Status);
                     break;
             }
+            var command = NotificationCallbackDto.ToCommand(dto);
 
-            var processingCommand = new ProcessNotificationCallbackCommand(
-                SyncId: callback.SyncId,
-                Status: callback.Status,
-                Result: callback.Result,
-                Reason: callback.Reason,
-                Errors: callback.Errors,
-                ErrorData: callback.ErrorData
-            );
+            await handler.Handle(command, ct);
 
-            var result = await handler.Handle(processingCommand, ct);
+            logger.LogDebug("Notification callback успешно обработан: {SyncId}", dto.SyncId);
 
-            logger.LogDebug("Notification callback успешно обработан: {SyncId}", callback.SyncId);
-
-            return Results.Json(new BotApiResponse(), statusCode: 202);
+            return Results.Json(new BotApiResponseDto(), statusCode: 202);
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Ошибка при обработке notification callback: {SyncId}", callback.SyncId);
+            logger.LogError(ex, "Ошибка при обработке notification callback: {SyncId}", dto.SyncId);
 
-            return Results.Json(new BotApiResponse(), statusCode: 202);
+            return Results.Json(new BotApiResponseDto(), statusCode: 202);
         }
     }
 }

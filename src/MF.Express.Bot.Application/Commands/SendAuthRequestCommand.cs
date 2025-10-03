@@ -1,12 +1,10 @@
-using MF.Express.Bot.Application.DTOs;
+using MF.Express.Bot.Application.Models.SendAuthRequest;
+using MF.Express.Bot.Application.Models.BotX;
 using MF.Express.Bot.Application.Interfaces;
 using Microsoft.Extensions.Logging;
 
 namespace MF.Express.Bot.Application.Commands;
 
-/// <summary>
-/// Команда отправки запроса авторизации с кнопками подтверждения
-/// </summary>
 public record SendAuthRequestCommand(
     string ChatId,
     string UserId,
@@ -16,10 +14,7 @@ public record SendAuthRequestCommand(
     Dictionary<string, object>? Metadata = null
 );
 
-/// <summary>
-/// Обработчик команды отправки запроса авторизации
-/// </summary>
-public class SendAuthRequestHandler : ICommand<SendAuthRequestCommand, SendAuthResultDto>
+public class SendAuthRequestHandler : ICommand<SendAuthRequestCommand, SendAuthResultAppModel>
 {
     private readonly IBotXApiService _expressBotService;
     private readonly ILogger<SendAuthRequestHandler> _logger;
@@ -32,7 +27,7 @@ public class SendAuthRequestHandler : ICommand<SendAuthRequestCommand, SendAuthR
         _logger = logger;
     }
 
-    public async Task<SendAuthResultDto> Handle(SendAuthRequestCommand command, CancellationToken cancellationToken = default)
+    public async Task<SendAuthResultAppModel> Handle(SendAuthRequestCommand command, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -48,14 +43,14 @@ public class SendAuthRequestHandler : ICommand<SendAuthRequestCommand, SendAuthR
                 inlineKeyboard,
                 cancellationToken);
 
-            return success ? new SendAuthResultDto { Success = true } : new SendAuthResultDto { Success = false };
+            return success ? new SendAuthResultAppModel { Success = true } : new SendAuthResultAppModel { Success = false };
 
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Ошибка при отправке запроса авторизации {AuthRequestId}", command.AuthRequestId);
 
-            return new SendAuthResultDto(
+            return new SendAuthResultAppModel(
                 Success: false,
                 ErrorMessage: ex.Message,
                 Timestamp: DateTime.UtcNow);
@@ -79,11 +74,11 @@ public class SendAuthRequestHandler : ICommand<SendAuthRequestCommand, SendAuthR
             """;
     }
 
-    private static List<List<InlineKeyboardButton>> CreateAuthButtons(string authRequestId)
+    private static List<List<InlineKeyboardButtonModel>> CreateAuthButtons(string authRequestId)
     {
         return
         [
-            new List<InlineKeyboardButton>()
+            new List<InlineKeyboardButtonModel>()
             {
                 new("✅ Разрешить", $"auth_allow_{authRequestId}"),
                 new("❌ Отклонить", $"auth_deny_{authRequestId}")    

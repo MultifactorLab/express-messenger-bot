@@ -1,5 +1,6 @@
 using MF.Express.Bot.Application.Commands;
-using MF.Express.Bot.Application.DTOs;
+using MF.Express.Bot.Api.DTOs.SendAuthRequest;
+using MF.Express.Bot.Application.Models.SendAuthRequest;
 
 namespace MF.Express.Bot.Api.Endpoints;
 
@@ -12,24 +13,18 @@ public class SendAuthRequestEndpoint : IEndpoint
     {
         app.MapPost("/send-auth-request", HandleAsync)
             .WithName("SendAuthRequest")
-            .Produces<SendAuthResultDto>()
+            .Produces<SendAuthResponseDto>()
             .ProducesValidationProblem();
     }
 
     private static async Task<IResult> HandleAsync(
-        SendAuthRequestDto request,
-        ICommand<SendAuthRequestCommand, SendAuthResultDto> handler,
+        SendAuthRequestDto dto,
+        ICommand<SendAuthRequestCommand, SendAuthResultAppModel> handler,
         CancellationToken ct)
     {
-        var command = new SendAuthRequestCommand(
-            request.ChatId,
-            request.UserId,
-            request.AuthRequestId,
-            request.Message,
-            request.ResourceName,
-            request.Metadata);
-            
-        var result = await handler.Handle(command, ct);
-        return result.Success ? Results.Ok(result) : Results.BadRequest(result);
+        var command = SendAuthRequestDto.ToCommand(dto);
+        var resultAppModel = await handler.Handle(command, ct);
+        var responseDto = SendAuthResponseDto.FromAppModel(resultAppModel);
+        return resultAppModel.Success ? Results.Ok(responseDto) : Results.BadRequest(responseDto);
     }
 }

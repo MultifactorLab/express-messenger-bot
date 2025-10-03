@@ -29,7 +29,6 @@ public class BotXJwtValidationMiddleware
 
     public async Task InvokeAsync(HttpContext context)
     {
-        // Применяем валидацию только к Bot API endpoints
         if (!ShouldValidateRequest(context))
         {
             await _next(context);
@@ -54,7 +53,6 @@ public class BotXJwtValidationMiddleware
                 return;
             }
 
-            // Добавляем claims в контекст для использования в endpoint
             context.User = claimsPrincipal;
 
             _logger.LogDebug("JWT токен успешно валидирован для запроса к {Path}", context.Request.Path);
@@ -71,11 +69,11 @@ public class BotXJwtValidationMiddleware
     {
         var path = context.Request.Path.Value?.ToLowerInvariant();
         
-        // Валидируем только Bot API endpoints
         return path switch
         {
             "/command" => true,
-            _ => false  // /status НЕ требует JWT авторизации
+            "/notification/callback" => true,
+            _ => false
         };
     }
 
@@ -97,7 +95,6 @@ public class BotXJwtValidationMiddleware
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             
-            // Создаем ключ для валидации на основе secret_key бота
             var key = Encoding.UTF8.GetBytes(_config.BotSecretKey);
             
             var validationParameters = new TokenValidationParameters
@@ -105,16 +102,15 @@ public class BotXJwtValidationMiddleware
                 ValidateIssuerSigningKey = true,
                 IssuerSigningKey = new SymmetricSecurityKey(key),
                 ValidateIssuer = true,
-                ValidIssuer = _config.ExpectedIssuer, // Host BotX сервера
+                ValidIssuer = _config.ExpectedIssuer,
                 ValidateAudience = true,
-                ValidAudience = _config.BotId, // ID нашего бота
+                ValidAudience = _config.BotId,
                 ValidateLifetime = true,
-                ClockSkew = TimeSpan.FromMinutes(1) // Допустимое отклонение времени
+                ClockSkew = TimeSpan.FromMinutes(1)
             };
 
             var principal = tokenHandler.ValidateToken(token, validationParameters, out SecurityToken validatedToken);
             
-            // Дополнительная проверка алгоритма (должен быть HS256)
             if (validatedToken is JwtSecurityToken jwtToken && 
                 jwtToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
             {
@@ -146,9 +142,6 @@ public class BotXJwtValidationMiddleware
     }
 }
 
-/// <summary>
-/// Extension методы для регистрации middleware
-/// </summary>
 public static class BotXJwtValidationMiddlewareExtensions
 {
     public static IApplicationBuilder UseBotXJwtValidation(this IApplicationBuilder builder)

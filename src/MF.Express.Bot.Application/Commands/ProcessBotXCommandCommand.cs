@@ -1,6 +1,8 @@
 using Microsoft.Extensions.Logging;
-using MF.Express.Bot.Application.DTOs;
+using MF.Express.Bot.Application.Models.BotCommand;
+using MF.Express.Bot.Application.Models.BotX;
 using MF.Express.Bot.Application.Interfaces;
+using MF.Express.Bot.Application.Services;
 
 namespace MF.Express.Bot.Application.Commands;
 
@@ -35,38 +37,37 @@ public record ProcessBotXCommandCommand(
 /// <summary>
 /// Обработчик команд Bot API v4
 /// </summary>
-public class ProcessBotXCommandHandler : ICommand<ProcessBotXCommandCommand, BotApiResponse>
+public class ProcessBotXCommandHandler : ICommand<ProcessBotXCommandCommand, BotApiResponseAppModel>
 {
     private readonly ILogger<ProcessBotXCommandHandler> _logger;
-    private readonly ICommand<ProcessIncomingMessageCommand, CommandProcessedResponse> _messageHandler;
-    private readonly ICommand<ProcessAuthCallbackCommand, CommandProcessedResponse> _callbackHandler;
+    private readonly IMessageProcessingService _messageService;
+    private readonly IAuthProcessingService _authService;
     private readonly IBotXApiService _botXApiService;
     private readonly IMultifactorApiService _multifactorApiService;
 
     public ProcessBotXCommandHandler(
         ILogger<ProcessBotXCommandHandler> logger,
-        ICommand<ProcessIncomingMessageCommand, CommandProcessedResponse> messageHandler,
-        ICommand<ProcessAuthCallbackCommand, CommandProcessedResponse> callbackHandler,
+        IMessageProcessingService messageService,
+        IAuthProcessingService authService,
         IBotXApiService botXApiService,
         IMultifactorApiService multifactorApiService)
     {
         _logger = logger;
-        _messageHandler = messageHandler;
-        _callbackHandler = callbackHandler;
+        _messageService = messageService;
+        _authService = authService;
         _botXApiService = botXApiService;
         _multifactorApiService = multifactorApiService;
     }
 
-    public async Task<BotApiResponse> Handle(ProcessBotXCommandCommand command, CancellationToken cancellationToken)
+    public async Task<BotApiResponseAppModel> Handle(ProcessBotXCommandCommand command, CancellationToken cancellationToken)
     {
         try
         {
             return command.CommandType.ToLowerInvariant() switch
             {
                 "user" => await HandleUserCommand(command, cancellationToken),
-                "chat_created" => await HandleChatCreated(command, cancellationToken),
                 "system" => await HandleSystemCommand(command, cancellationToken),
-                _ => new BotApiResponse()
+                _ => new BotApiResponseAppModel()
             };
         }
         catch (Exception ex)
@@ -74,11 +75,11 @@ public class ProcessBotXCommandHandler : ICommand<ProcessBotXCommandCommand, Bot
             _logger.LogError(ex, "Ошибка при обработке BotX команды {SyncId} типа {CommandType}", 
                 command.SyncId, command.CommandType);
             
-            return new BotApiResponse();
+            return new BotApiResponseAppModel();
         }
     }
 
-    private async Task<BotApiResponse> HandleUserCommand(ProcessBotXCommandCommand command, CancellationToken cancellationToken)
+    private async Task<BotApiResponseAppModel> HandleUserCommand(ProcessBotXCommandCommand command, CancellationToken cancellationToken)
     {
         _logger.LogInformation("Обработка пользовательской команды: {Body} от {UserHuid}", 
             command.CommandBody, command.UserHuid);
@@ -93,30 +94,31 @@ public class ProcessBotXCommandHandler : ICommand<ProcessBotXCommandCommand, Bot
             return await HandleButtonCallback(command, cancellationToken);
         }
 
-        var messageCommand = new ProcessIncomingMessageCommand(
-            ChatId: command.GroupChatId ?? "private",
-            UserId: command.UserHuid ?? "unknown",
-            Text: command.CommandBody,
-            Timestamp: DateTime.UtcNow,
-            MessageId: command.SyncId,
-            Username: command.Username,
-            FirstName: ExtractFromData(command.CommandData, "first_name"),
-            LastName: ExtractFromData(command.CommandData, "last_name"),
-            Metadata: command.CommandMetadata
+        await _messageService.ProcessIncomingMessageAsync(
+            chatId: command.GroupChatId ?? "private",
+            userId: command.UserHuid ?? "unknown",
+            text: command.CommandBody,
+            messageId: command.SyncId,
+            username: command.Username,
+            firstName: ExtractFromData(command.CommandData, "first_name"),
+            lastName: ExtractFromData(command.CommandData, "last_name"),
+            metadata: command.CommandMetadata,
+            cancellationToken: cancellationToken
         );
 
-        await _messageHandler.Handle(messageCommand, cancellationToken);
-        return new BotApiResponse();
+        return new BotApiResponseAppModel();
     }
 
     private static bool IsButtonCallback(ProcessBotXCommandCommand command)
     {
         return command.CommandData?.ContainsKey("callback_data") == true ||
                command.CommandData?.ContainsKey("button_data") == true ||
-               command.CommandBody.StartsWith("callback:", StringComparison.OrdinalIgnoreCase);
+               command.CommandBody.StartsWith("callback:", StringComparison.OrdinalIgnoreCase) ||
+               command.CommandBody.StartsWith("auth_allow_", StringComparison.OrdinalIgnoreCase) ||
+               command.CommandBody.StartsWith("auth_deny_", StringComparison.OrdinalIgnoreCase);
     }
 
-    private async Task<BotApiResponse> HandleButtonCallback(ProcessBotXCommandCommand command, CancellationToken cancellationToken)
+    private async Task<BotApiResponseAppModel> HandleButtonCallback(ProcessBotXCommandCommand command, CancellationToken cancellationToken)
     {
         _logger.LogInformation("Обработка callback от кнопки: {Body} от {UserHuid}", 
             command.CommandBody, command.UserHuid);
@@ -125,17 +127,21 @@ public class ProcessBotXCommandHandler : ICommand<ProcessBotXCommandCommand, Bot
         {
             var callbackData = ExtractCallbackData(command);
             
+            _logger.LogDebug("Извлеченные callback данные: {CallbackData} из CommandBody: {CommandBody}", 
+                callbackData, command.CommandBody);
+            
             if (string.IsNullOrEmpty(callbackData))
             {
-                _logger.LogWarning("Не удалось извлечь данные callback'а из команды {SyncId}", command.SyncId);
-                return new BotApiResponse();
+                _logger.LogWarning("Не удалось извлечь данные callback'а из команды {SyncId}. CommandBody: {CommandBody}", 
+                    command.SyncId, command.CommandBody);
+                return new BotApiResponseAppModel();
             }
 
             var parts = callbackData.Split(':', 2);
             if (parts.Length != 2)
             {
                 _logger.LogWarning("Неверный формат callback данных: {CallbackData}", callbackData);
-                return new BotApiResponse();
+                return new BotApiResponseAppModel();
             }
 
             var authRequestId = parts[0];
@@ -144,28 +150,25 @@ public class ProcessBotXCommandHandler : ICommand<ProcessBotXCommandCommand, Bot
             if (!Enum.TryParse<AuthAction>(actionStr, true, out var action))
             {
                 _logger.LogWarning("Неизвестное действие callback'а: {Action}", actionStr);
-                return new BotApiResponse();
+                return new BotApiResponseAppModel();
             }
-
-            var callbackCommand = new ProcessAuthCallbackCommand(
-                CallbackId: command.SyncId,
-                UserId: command.UserHuid ?? "unknown",
-                ChatId: command.GroupChatId ?? "private",
-                AuthRequestId: authRequestId,
-                Action: action,
-                Timestamp: DateTime.UtcNow,
-                MessageId: command.SourceSyncId,
-                Metadata: command.CommandMetadata
+            await _authService.ProcessAuthCallbackAsync(
+                callbackId: command.SyncId,
+                authRequestId: authRequestId,
+                userId: command.UserHuid ?? "unknown",
+                chatId: command.GroupChatId ?? "private",
+                action: action,
+                messageId: command.SourceSyncId,
+                metadata: command.CommandMetadata,
+                cancellationToken: cancellationToken
             );
 
-            await _callbackHandler.Handle(callbackCommand, cancellationToken);
-
-            return new BotApiResponse();
+            return new BotApiResponseAppModel();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Ошибка при обработке callback'а от кнопки");
-            return new BotApiResponse();
+            return new BotApiResponseAppModel();
         }
     }
 
@@ -186,6 +189,18 @@ public class ProcessBotXCommandHandler : ICommand<ProcessBotXCommandCommand, Bot
             return command.CommandBody[9..];
         }
 
+        if (command.CommandBody.StartsWith("auth_allow_", StringComparison.OrdinalIgnoreCase))
+        {
+            var authRequestId = command.CommandBody[11..];
+            return $"{authRequestId}:Allow";
+        }
+
+        if (command.CommandBody.StartsWith("auth_deny_", StringComparison.OrdinalIgnoreCase))
+        {
+            var authRequestId = command.CommandBody[10..];
+            return $"{authRequestId}:Deny";
+        }
+
         return null;
     }
 
@@ -194,10 +209,7 @@ public class ProcessBotXCommandHandler : ICommand<ProcessBotXCommandCommand, Bot
         return data?.TryGetValue(key, out var value) == true ? value?.ToString() : null;
     }
 
-    /// <summary>
-    /// Обработка события создания чата с ботом
-    /// </summary>
-    private async Task<BotApiResponse> HandleChatCreated(ProcessBotXCommandCommand command, CancellationToken cancellationToken)
+    private async Task<BotApiResponseAppModel> HandleChatCreated(ProcessBotXCommandCommand command, CancellationToken cancellationToken)
     {
         var userInfo = string.IsNullOrEmpty(command.UserHuid) ? "системное событие" : $"пользователь {command.UserHuid}";
         _logger.LogInformation("Обработка события создания чата с ботом: {UserInfo} в чате {ChatId}", 
@@ -223,11 +235,11 @@ public class ProcessBotXCommandHandler : ICommand<ProcessBotXCommandCommand, Bot
                 Нажмите кнопку ниже, чтобы начать!
                 """;
 
-            var keyboard = new List<List<InlineKeyboardButton>>
+            var keyboard = new List<List<InlineKeyboardButtonModel>>
             {
-                new List<InlineKeyboardButton>
+                new List<InlineKeyboardButtonModel>
                 {
-                    new InlineKeyboardButton("🚀 Начать работу", "/start")
+                    new InlineKeyboardButtonModel("🚀 Начать работу", "/start")
                 }
             };
 
@@ -248,24 +260,20 @@ public class ProcessBotXCommandHandler : ICommand<ProcessBotXCommandCommand, Bot
                     chatId, userInfo);
             }
 
-            return new BotApiResponse();
+            return new BotApiResponseAppModel();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Ошибка при обработке события создания чата {ChatId} (событие: {UserInfo})", 
                 command.GroupChatId, userInfo);
-            return new BotApiResponse();
+            return new BotApiResponseAppModel();
         }
     }
-
-    /// <summary>
-    /// Обработка системных команд
-    /// </summary>
-    private async Task<BotApiResponse> HandleSystemCommand(ProcessBotXCommandCommand command, CancellationToken cancellationToken)
+    
+    private async Task<BotApiResponseAppModel> HandleSystemCommand(ProcessBotXCommandCommand command, CancellationToken cancellationToken)
     {
         _logger.LogDebug("Обработка системной команды: {CommandType} {Body}", command.CommandType, command.CommandBody);
-        
-        // Проверяем, является ли это событием создания чата
+       
         if (command.CommandBody?.Equals("system:chat_created", StringComparison.OrdinalIgnoreCase) == true)
         {
             _logger.LogInformation("Обнаружено событие создания чата: {SyncId} в чате {ChatId}", 
@@ -273,31 +281,24 @@ public class ProcessBotXCommandHandler : ICommand<ProcessBotXCommandCommand, Bot
             return await HandleChatCreated(command, cancellationToken);
         }
         
-        // Обработка других системных команд
         _logger.LogInformation("Получена неизвестная системная команда: {Body}", command.CommandBody);
-        return new BotApiResponse();
+        return new BotApiResponseAppModel();
     }
-
-    /// <summary>
-    /// Проверяет, является ли команда командой /start
-    /// </summary>
+    
     private static bool IsStartCommand(ProcessBotXCommandCommand command)
     {
         return command.CommandBody.Trim().Equals("/start", StringComparison.OrdinalIgnoreCase) ||
                command.CommandBody.Trim().Equals("start", StringComparison.OrdinalIgnoreCase);
     }
 
-    /// <summary>
-    /// Обработка команды /start - отправка данных пользователя обратно в чат (тестовый режим)
-    /// </summary>
-    private async Task<BotApiResponse> HandleStartCommand(ProcessBotXCommandCommand command, CancellationToken cancellationToken)
+    private async Task<BotApiResponseAppModel> HandleStartCommand(ProcessBotXCommandCommand command, CancellationToken cancellationToken)
     {
         _logger.LogInformation("Обработка команды /start от пользователя {UserHuid} в чате {ChatId}", 
             command.UserHuid, command.GroupChatId);
 
         try
         {
-            var userData = new UserStartCommandDataDto(
+            var userData = new UserStartCommandAppModel(
                 UserId: command.UserHuid ?? "unknown",
                 ChatId: command.GroupChatId ?? "private",
                 Username: command.Username,
@@ -314,10 +315,9 @@ public class ProcessBotXCommandHandler : ICommand<ProcessBotXCommandCommand, Bot
                 Metadata: command.CommandMetadata
             );
 
-            // ВРЕМЕННО ЗАКОММЕНТИРОВАНО: отправка в Multifactor API
+            // отправка в Multifactor API
             // var success = await _multifactorApiService.SendUserStartCommandDataAsync(userData, cancellationToken);
 
-            // Формируем сообщение с данными пользователя для отправки в чат
             var userDataMessage = $"""
                 📋 **Данные пользователя /start:**
                 
@@ -358,24 +358,13 @@ public class ProcessBotXCommandHandler : ICommand<ProcessBotXCommandCommand, Bot
                     command.UserHuid, chatId);
             }
 
-            return new BotApiResponse();
+            return new BotApiResponseAppModel();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Ошибка при обработке команды /start для пользователя {UserHuid}", command.UserHuid);
-            
-            try
-            {
-                var chatId = command.GroupChatId ?? "private";
-                await _botXApiService.SendTextMessageAsync(chatId, 
-                    "❌ Произошла внутренняя ошибка. Обратитесь к администратору.", cancellationToken);
-            }
-            catch
-            {
-                // Игнорируем ошибки отправки сообщения об ошибке
-            }
 
-            return new BotApiResponse();
+            return new BotApiResponseAppModel();
         }
     }
 }

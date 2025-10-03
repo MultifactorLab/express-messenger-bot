@@ -15,7 +15,6 @@ public static class EndpointExtensions
         new BotCommandEndpoint().MapEndpoint(app);
         new BotStatusEndpoint().MapEndpoint(app);
         new NotificationCallbackEndpoint().MapEndpoint(app);
-        
         new SendAuthRequestEndpoint().MapEndpoint(app);
 
         return app;

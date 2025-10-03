@@ -1,13 +1,12 @@
 using FluentValidation;
 using FluentValidation.AspNetCore;
-using Microsoft.Extensions.Options;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using MF.Express.Bot.Api.Extensions;
 using MF.Express.Bot.Api.Middleware;
-using MF.Express.Bot.Application.Interfaces;
 using MF.Express.Bot.Infrastructure.Configuration;
 using MF.Express.Bot.Infrastructure.Extensions;
-using MF.Express.Bot.Infrastructure.Services;
 using Serilog;
+using ServiceCollectionExtensions = MF.Express.Bot.Api.Extensions.ServiceCollectionExtensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,12 +19,10 @@ builder.Services.AddSwaggerGen(c =>
     { 
         Title = "MF Express Bot API v4", 
         Version = "v1",
-        Description = "Express.MS Bot API v4 для мессенджера Express. Поддерживает Bot API v4 и BotX API интеграцию для двухфакторной аутентификации."
     });
 });
 
 builder.Services.AddAuthentication();
-
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 
@@ -39,22 +36,10 @@ builder.Services.AddOptions<MultifactorApiConfiguration>()
     .ValidateDataAnnotations()
     .ValidateOnStart();
 
-builder.Services.AddHttpClient("BotX", (serviceProvider, client) =>
-{
-    var config = serviceProvider.GetRequiredService<IOptions<ExpressBotConfiguration>>().Value;
-    client.BaseAddress = new Uri(config.BotXApiBaseUrl);
-    client.Timeout = TimeSpan.FromSeconds(config.RequestTimeoutSeconds);
-});
-
 builder.Services.AddInfrastructure();
-
 builder.Services.AddApplication();
-
-
 builder.Services.AddExceptionHandler<ExpressBotExceptionHandler>();
 builder.Services.AddProblemDetails();
-
-builder.Services.AddMfHealthChecks();
 
 var app = builder.Build();
 
@@ -72,7 +57,13 @@ if (app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "Local
         c.RoutePrefix = "swagger";
     });
 }
+ServiceCollectionExtensions.AddHealthChecks(builder.Services);
 
+app.MapHealthChecks("/health/live");
+app.MapHealthChecks("/health/ready", new HealthCheckOptions
+{
+    Predicate = check => check.Tags.Contains("ready")
+});
 app.MapHealthChecks("/healthz");
 
 app.MapSimpleEndpoints();

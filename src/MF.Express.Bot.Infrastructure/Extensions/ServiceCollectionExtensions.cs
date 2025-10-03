@@ -1,4 +1,5 @@
 using MF.Express.Bot.Application.Interfaces;
+using MF.Express.Bot.Application.Services;
 using MF.Express.Bot.Infrastructure.Configuration;
 using MF.Express.Bot.Infrastructure.Services;
 using Microsoft.Extensions.DependencyInjection;
@@ -6,24 +7,23 @@ using Microsoft.Extensions.Options;
 
 namespace MF.Express.Bot.Infrastructure.Extensions;
 
-/// <summary>
-/// Расширения для регистрации сервисов Infrastructure слоя
-/// </summary>
 public static class ServiceCollectionExtensions
 {
-    /// <summary>
-    /// Добавляет все сервисы Infrastructure слоя
-    /// </summary>
     public static IServiceCollection AddInfrastructure(this IServiceCollection services)
     {
         services.AddMultifactorApiService();
         services.AddBotXApiService();
+        services.AddApplicationServices();
+        return services;
+    }
+    
+    public static IServiceCollection AddApplicationServices(this IServiceCollection services)
+    {
+        services.AddScoped<IMessageProcessingService, MessageProcessingService>();
+        services.AddScoped<IAuthProcessingService, AuthProcessingService>();
         return services;
     }
 
-    /// <summary>
-    /// Добавляет BotX API сервис
-    /// </summary>
     public static IServiceCollection AddBotXApiService(this IServiceCollection services)
     {
         services.AddHttpClient("BotX", (serviceProvider, client) =>

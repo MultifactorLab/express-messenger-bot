@@ -2,9 +2,11 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using MF.Express.Bot.Application.DTOs;
+using MF.Express.Bot.Application.Models.Auth;
+using MF.Express.Bot.Application.Models.BotCommand;
 using MF.Express.Bot.Application.Interfaces;
 using MF.Express.Bot.Infrastructure.Configuration;
+using MF.Express.Bot.Infrastructure.ExternalServices.Multifactor.DTOs;
 
 namespace MF.Express.Bot.Infrastructure.Services;
 
@@ -34,22 +36,23 @@ public class MultifactorApiService : IMultifactorApiService
         };
     }
 
-    public async Task<bool> SendUserChatInfoAsync(UserChatInfoDto userChatInfo, CancellationToken cancellationToken = default)
+    public async Task<bool> SendUserChatInfoAsync(UserChatInfoAppModel userChatInfoModel, CancellationToken cancellationToken = default)
     {
         try
         {
             _logger.LogInformation("Отправка информации о пользователе {UserId} и чате {ChatId} в Multifactor API", 
-                userChatInfo.UserId, userChatInfo.ChatId);
+                userChatInfoModel.UserId, userChatInfoModel.ChatId);
 
+            var dto = UserChatInfoDto.FromAppModel(userChatInfoModel);
             var httpClient = _httpClientFactory.CreateClient("MultifactorApi");
-            var json = JsonSerializer.Serialize(userChatInfo, _jsonOptions);
+            var json = JsonSerializer.Serialize(dto, _jsonOptions);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
             var response = await httpClient.PostAsync(_configuration.UserChatInfoEndpoint, content, cancellationToken);
             
             if (response.IsSuccessStatusCode)
             {
-                _logger.LogInformation("Информация о пользователе {UserId} успешно отправлена в Multifactor API", userChatInfo.UserId);
+                _logger.LogInformation("Информация о пользователе {UserId} успешно отправлена в Multifactor API", userChatInfoModel.UserId);
                 return true;
             }
 
@@ -61,27 +64,28 @@ public class MultifactorApiService : IMultifactorApiService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Исключение при отправке информации о пользователе {UserId} в Multifactor API", userChatInfo.UserId);
+            _logger.LogError(ex, "Исключение при отправке информации о пользователе {UserId} в Multifactor API", userChatInfoModel.UserId);
             return false;
         }
     }
 
-    public async Task<bool> SendAuthorizationResultAsync(AuthorizationResultDto authResult, CancellationToken cancellationToken = default)
+    public async Task<bool> SendAuthorizationResultAsync(AuthorizationResultAppModel authResultModel, CancellationToken cancellationToken = default)
     {
         try
         {
             _logger.LogInformation("Отправка результата авторизации {AuthRequestId} для пользователя {UserId} в Multifactor API", 
-                authResult.AuthRequestId, authResult.UserId);
-
+                authResultModel.AuthRequestId, authResultModel.UserId);
+            
+            var dto = AuthorizationResultDto.FromAppModel(authResultModel);
             var httpClient = _httpClientFactory.CreateClient("MultifactorApi");
-            var json = JsonSerializer.Serialize(authResult, _jsonOptions);
+            var json = JsonSerializer.Serialize(dto, _jsonOptions);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
             var response = await httpClient.PostAsync(_configuration.AuthorizationResultEndpoint, content, cancellationToken);
             
             if (response.IsSuccessStatusCode)
             {
-                _logger.LogInformation("Результат авторизации {AuthRequestId} успешно отправлен в Multifactor API", authResult.AuthRequestId);
+                _logger.LogInformation("Результат авторизации {AuthRequestId} успешно отправлен в Multifactor API", authResultModel.AuthRequestId);
                 return true;
             }
 
@@ -93,7 +97,7 @@ public class MultifactorApiService : IMultifactorApiService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Исключение при отправке результата авторизации {AuthRequestId} в Multifactor API", authResult.AuthRequestId);
+            _logger.LogError(ex, "Исключение при отправке результата авторизации {AuthRequestId} в Multifactor API", authResultModel.AuthRequestId);
             return false;
         }
     }
@@ -128,22 +132,22 @@ public class MultifactorApiService : IMultifactorApiService
         }
     }
 
-    public async Task<bool> SendUserStartCommandDataAsync(UserStartCommandDataDto userData, CancellationToken cancellationToken = default)
+    public async Task<bool> SendUserStartCommandDataAsync(UserStartCommandAppModel userDataModel, CancellationToken cancellationToken = default)
     {
         try
         {
-            _logger.LogInformation("Отправка данных пользователя {UserId} при команде /start в Multifactor API", userData.UserId);
-
+            _logger.LogInformation("Отправка данных пользователя {UserId} при команде /start в Multifactor API", userDataModel.UserId);
+            
+            var dto = UserStartCommandDataDto.FromAppModel(userDataModel);
             var httpClient = _httpClientFactory.CreateClient("MultifactorApi");
-            var json = JsonSerializer.Serialize(userData, _jsonOptions);
+            var json = JsonSerializer.Serialize(dto, _jsonOptions);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            var endpoint = _configuration.UserStartCommandEndpoint ?? "/api/bot/user-start-data";
-            var response = await httpClient.PostAsync(endpoint, content, cancellationToken);
+            var response = await httpClient.PostAsync(_configuration.UserStartCommandEndpoint, content, cancellationToken);
             
             if (response.IsSuccessStatusCode)
             {
-                _logger.LogInformation("Данные пользователя {UserId} при команде /start успешно отправлены в Multifactor API", userData.UserId);
+                _logger.LogInformation("Данные пользователя {UserId} при команде /start успешно отправлены в Multifactor API", userDataModel.UserId);
                 return true;
             }
 
@@ -155,7 +159,7 @@ public class MultifactorApiService : IMultifactorApiService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Исключение при отправке данных пользователя {UserId} при команде /start в Multifactor API", userData.UserId);
+            _logger.LogError(ex, "Исключение при отправке данных пользователя {UserId} при команде /start в Multifactor API", userDataModel.UserId);
             return false;
         }
     }

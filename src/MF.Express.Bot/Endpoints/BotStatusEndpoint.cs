@@ -1,5 +1,6 @@
-using MF.Express.Bot.Application.DTOs;
-using MF.Express.Bot.Application.Interfaces;
+using MF.Express.Bot.Api.DTOs.BotStatus;
+using MF.Express.Bot.Api.DTOs.Common;
+using MF.Express.Bot.Application.Models.BotX;
 using Microsoft.Extensions.Options;
 using MF.Express.Bot.Infrastructure.Configuration;
 
@@ -15,8 +16,8 @@ public class BotStatusEndpoint : IEndpoint
     {
         app.MapGet("/status", HandleAsync)
             .WithName("GetBotStatus")
-            .Produces<BotStatusResponse>(200)
-            .Produces<BotApiErrorResponse>(503);
+            .Produces<BotStatusResponseDto>(200)
+            .Produces<BotApiErrorResponseDto>(503);
     }
 
     private static async Task<IResult> HandleAsync(
@@ -28,32 +29,33 @@ public class BotStatusEndpoint : IEndpoint
         {
             logger.LogDebug("Запрос статуса бота {BotId}", config.Value.BotId);
 
-            var commands = new List<BotCommand>
+            var commands = new List<BotCommandInfoModel>
             {
-                new BotCommand(
+                new BotCommandInfoModel(
                     Name: "/start",
                     Body: "/start",
                     Description: "Начать работу с ботом"
                 )
             };
 
-            var response = new BotStatusResponse(
+            var statusModel = new BotStatusModel(
                 Status: "ok",
-                Result: new BotStatusResult(
+                Result: new BotStatusResultModel(
                     Enabled: true,
                     StatusMessage: string.Empty,
                     Commands: commands
                 )
             );
+            
             logger.LogInformation("Статус бота успешно возвращен: {CommandCount} команд", commands.Count);
-
-            return Results.Ok(response);
+            var responseDto = BotStatusResponseDto.FromAppModel(statusModel);
+            return Results.Ok(responseDto);
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Ошибка при получении статуса бота");
 
-            var errorResponse = new BotApiErrorResponse(
+            var errorResponse = new BotApiErrorResponseDto(
                 Reason: "internal_error",
                 ErrorData: new Dictionary<string, object> 
                 { 

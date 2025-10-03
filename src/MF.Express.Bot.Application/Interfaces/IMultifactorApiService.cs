@@ -1,4 +1,5 @@
-using MF.Express.Bot.Application.DTOs;
+using MF.Express.Bot.Application.Models.Auth;
+using MF.Express.Bot.Application.Models.BotCommand;
 
 namespace MF.Express.Bot.Application.Interfaces;
 
@@ -7,30 +8,15 @@ namespace MF.Express.Bot.Application.Interfaces;
 /// </summary>
 public interface IMultifactorApiService
 {
-    /// <summary>
-    /// Отправляет информацию о пользователе и чате в Multifactor API
-    /// </summary>
-    Task<bool> SendUserChatInfoAsync(UserChatInfoDto userChatInfo, CancellationToken cancellationToken = default);
+    Task<bool> SendUserChatInfoAsync(UserChatInfoAppModel userChatInfo, CancellationToken cancellationToken = default);
     
-    /// <summary>
-    /// Отправляет результат авторизации в Multifactor API
-    /// </summary>
-    Task<bool> SendAuthorizationResultAsync(AuthorizationResultDto authResult, CancellationToken cancellationToken = default);
+    Task<bool> SendAuthorizationResultAsync(AuthorizationResultAppModel authResult, CancellationToken cancellationToken = default);
     
-    /// <summary>
-    /// Получает дополнительную информацию о пользователе из Multifactor API (если нужно)
-    /// </summary>
     Task<UserInfoResponse?> GetUserInfoAsync(string userId, CancellationToken cancellationToken = default);
     
-    /// <summary>
-    /// Отправляет полные данные пользователя в Multifactor API при команде /start
-    /// </summary>
-    Task<bool> SendUserStartCommandDataAsync(UserStartCommandDataDto userData, CancellationToken cancellationToken = default);
+    Task<bool> SendUserStartCommandDataAsync(UserStartCommandAppModel userData, CancellationToken cancellationToken = default);
 }
 
-/// <summary>
-/// Ответ с информацией о пользователе из Multifactor API
-/// </summary>
 public record UserInfoResponse(
     string UserId,
     string? Email,
