@@ -30,18 +30,13 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddExpressBotHealthChecks(this IServiceCollection services)
     {
         HealthCheckServiceCollectionExtensions.AddHealthChecks(services)
-            // Liveness check - базовая проверка что приложение работает
             .AddCheck("self", () => HealthCheckResult.Healthy("Application is running"))
-            // Readiness checks - проверка внешних зависимостей
             .AddCheck<BotXApiHealthCheck>("botx_api", tags: new[] { "ready" })
             .AddCheck<MultifactorApiHealthCheck>("multifactor_api", tags: new[] { "ready" });
 
         return services;
     }
     
-    /// <summary>
-    /// Автоматическая регистрация всех обработчиков команд из указанной сборки
-    /// </summary>
     private static IServiceCollection AddCommands(this IServiceCollection services, Assembly assembly)
     {
         var commandHandlerType = typeof(ICommand<,>);

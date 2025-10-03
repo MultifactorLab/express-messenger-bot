@@ -21,6 +21,8 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
+builder.AddLocalhostUserSecrets<Program>();
+
 builder.Services.AddAuthentication();
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();

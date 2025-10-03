@@ -19,10 +19,6 @@ public static class WebApplicationBuilderExtensions
 
         return builder;
     }
-
-    /// <summary>
-    /// Добавляет пользовательские секреты для localhost окружения
-    /// </summary>
     public static void AddLocalhostUserSecrets<TAssembly>(this WebApplicationBuilder builder) 
         where TAssembly : class
     {

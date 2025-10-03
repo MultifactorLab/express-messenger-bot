@@ -36,13 +36,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IBotXApiService, BotXApiService>();
         return services;
     }
-
-
-
-
-    /// <summary>
-    /// Добавляет Multifactor API сервис
-    /// </summary>
+    
     public static IServiceCollection AddMultifactorApiService(this IServiceCollection services)
     {
         services.AddHttpClient("MultifactorApi", (serviceProvider, client) =>

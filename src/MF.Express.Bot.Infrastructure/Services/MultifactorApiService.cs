@@ -10,9 +10,6 @@ using MF.Express.Bot.Infrastructure.ExternalServices.Multifactor.DTOs;
 
 namespace MF.Express.Bot.Infrastructure.Services;
 
-/// <summary>
-/// Сервис для взаимодействия с Multifactor API
-/// </summary>
 public class MultifactorApiService : IMultifactorApiService
 {
     private readonly IHttpClientFactory _httpClientFactory;

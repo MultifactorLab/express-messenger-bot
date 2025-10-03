@@ -33,9 +33,6 @@ public class BotXApiService : IBotXApiService
         _logger = logger;
     }
 
-    /// <summary>
-    /// Отправляет текстовое сообщение в чат
-    /// </summary>
     public async Task<bool> SendTextMessageAsync(string chatId, string text, CancellationToken cancellationToken = default)
     {
         try
@@ -81,9 +78,6 @@ public class BotXApiService : IBotXApiService
         }
     }
 
-    /// <summary>
-    /// Отправляет сообщение с bubble кнопками (кнопки под сообщением)
-    /// </summary>
     public async Task<bool> SendMessageWithInlineKeyboardAsync(string chatId, string text, List<List<InlineKeyboardButtonModel>> keyboard, CancellationToken cancellationToken = default)
     {
         try
@@ -135,10 +129,6 @@ public class BotXApiService : IBotXApiService
         }
     }
 
-    /// <summary>
-    /// Получает токен бота для BotX API
-    /// Согласно документации: https://docs.express.ms/chatbots/developer-guide/api/botx-api/bots-api/
-    /// </summary>
     private async Task<string?> GetBotTokenAsync(CancellationToken cancellationToken)
     {
         if (!string.IsNullOrEmpty(_cachedToken) && DateTime.UtcNow < _tokenExpiresAt)
@@ -195,9 +185,6 @@ public class BotXApiService : IBotXApiService
         }
     }
 
-    /// <summary>
-    /// Генерирует подпись для получения токена
-    /// </summary>
     private static string GenerateSignature(string botId, string secretKey)
     {
         var keyBytes = Encoding.UTF8.GetBytes(secretKey);
@@ -209,9 +196,6 @@ public class BotXApiService : IBotXApiService
         return Convert.ToHexString(hashBytes);
     }
 
-    /// <summary>
-    /// Ответить на команду (reply)
-    /// </summary>
     public async Task<bool> ReplyToCommandAsync(string syncId, string text, CancellationToken cancellationToken = default)
     {
         try
@@ -256,9 +240,6 @@ public class BotXApiService : IBotXApiService
         }
     }
 
-    /// <summary>
-    /// Получить информацию о пользователе
-    /// </summary>
     public async Task<BotXUserInfoModel?> GetUserInfoAsync(string userHuid, CancellationToken cancellationToken = default)
     {
         try
