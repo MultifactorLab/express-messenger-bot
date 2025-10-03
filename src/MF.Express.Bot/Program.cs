@@ -46,7 +46,7 @@ var app = builder.Build();
 app.UseExceptionHandler();
 app.UseSerilogRequestLogging();
 
-app.UseBotXJwtValidation();
+app.UseRouting();
 
 if (app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "Local")
 {
@@ -57,6 +57,8 @@ if (app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "Local
         c.RoutePrefix = "swagger";
     });
 }
+
+app.UseBotXJwtValidation();
 
 app.MapHealthChecks("/health/live");
 app.MapHealthChecks("/health/ready", new HealthCheckOptions
