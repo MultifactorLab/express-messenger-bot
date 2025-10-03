@@ -6,9 +6,6 @@ using Microsoft.Extensions.Options;
 
 namespace MF.Express.Bot.Api.Extensions;
 
-/// <summary>
-/// Расширения для IServiceCollection в API слое
-/// </summary>
 public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddApplication(this IServiceCollection services)
