@@ -12,10 +12,13 @@ public static class EndpointExtensions
     /// </summary>
     public static WebApplication MapSimpleEndpoints(this WebApplication app)
     {
-        new BotCommandEndpoint().MapEndpoint(app);
-        new BotStatusEndpoint().MapEndpoint(app);
-        new NotificationCallbackEndpoint().MapEndpoint(app);
-        new SendAuthRequestEndpoint().MapEndpoint(app);
+        var apiGroup = app.MapGroup("/api")
+            .WithTags("Express Bot API");
+
+        new BotCommandEndpoint().MapEndpoint(apiGroup);
+        new BotStatusEndpoint().MapEndpoint(apiGroup);
+        new NotificationCallbackEndpoint().MapEndpoint(apiGroup);
+        new SendAuthRequestEndpoint().MapEndpoint(apiGroup);
 
         return app;
     }

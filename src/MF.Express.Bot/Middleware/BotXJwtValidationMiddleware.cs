@@ -71,8 +71,8 @@ public class BotXJwtValidationMiddleware
         
         return path switch
         {
-            "/command" => true,
-            "/notification/callback" => true,
+            "/api/command" => true,
+            "/api/notification/callback" => true,
             _ => false
         };
     }
