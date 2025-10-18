@@ -4,6 +4,7 @@ public enum NotificationStatus
 {
     Delivered,
     Failed,
-    Read
+    Read,
+    Unknown = 100
 }
 

@@ -1,5 +1,5 @@
 using System.Text.Json.Serialization;
-using MF.Express.Bot.Application.Commands;
+using MF.Express.Bot.Application.UseCases.BotCommands;
 
 namespace MF.Express.Bot.Api.DTOs.BotCommand;
 
@@ -15,9 +15,9 @@ public record BotCommandDto(
     [property: JsonPropertyName("entities")] List<object>? Entities = null
 )
 {
-    public static ProcessBotXCommandCommand ToCommand(BotCommandDto dto)
+    public static BotCommandRequest ToRequest(BotCommandDto dto)
     {
-        return new ProcessBotXCommandCommand(
+        return new BotCommandRequest(
             SyncId: dto.SyncId,
             SourceSyncId: dto.SourceSyncId,
             CommandType: dto.Command.CommandType,

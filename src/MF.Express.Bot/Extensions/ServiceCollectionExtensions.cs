@@ -1,5 +1,6 @@
-using System.Reflection;
-using MF.Express.Bot.Application.Commands;
+using MF.Express.Bot.Application.UseCases.Auth;
+using MF.Express.Bot.Application.UseCases.BotCommands;
+using MF.Express.Bot.Application.UseCases.Notifications;
 using MF.Express.Bot.Infrastructure.Configuration;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
@@ -10,11 +11,34 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
-        var applicationAssembly = typeof(ICommand<,>).Assembly;
-        var apiAssembly = Assembly.GetExecutingAssembly();
+        services.AddUseCases();
         
-        services.AddCommands(applicationAssembly);
-        services.AddCommands(apiAssembly);
+        return services;
+    }
+
+    /// <summary>
+    /// Регистрирует все UseCase в DI контейнере
+    /// </summary>
+    private static IServiceCollection AddUseCases(this IServiceCollection services)
+    {
+        // Main router
+        services.AddScoped<IProcessBotCommandUseCase, ProcessBotCommandUseCase>();
+        
+        // Command routers
+        services.AddScoped<IProcessUserCommandUseCase, ProcessUserCommandUseCase>();
+        services.AddScoped<IProcessSystemCommandUseCase, ProcessSystemCommandUseCase>();
+        
+        // Specific handlers
+        services.AddScoped<IHandleStartCommandUseCase, HandleStartCommandUseCase>();
+        services.AddScoped<IHandleAuthCallbackUseCase, HandleAuthCallbackUseCase>();
+        services.AddScoped<IHandleChatCreatedUseCase, HandleChatCreatedUseCase>();
+        services.AddScoped<IProcessIncomingMessageUseCase, ProcessIncomingMessageUseCase>();
+        
+        // Auth
+        services.AddScoped<ISendAuthRequestUseCase, SendAuthRequestUseCase>();
+        
+        // Notifications
+        services.AddScoped<IProcessNotificationCallbackUseCase, ProcessNotificationCallbackUseCase>();
         
         return services;
     }
@@ -30,26 +54,6 @@ public static class ServiceCollectionExtensions
             .AddCheck("self", () => HealthCheckResult.Healthy("Application is running"))
             .AddCheck<BotXApiHealthCheck>("botx_api", tags: new[] { "ready" })
             .AddCheck<MultifactorApiHealthCheck>("multifactor_api", tags: new[] { "ready" });
-
-        return services;
-    }
-    
-    private static IServiceCollection AddCommands(this IServiceCollection services, Assembly assembly)
-    {
-        var commandHandlerType = typeof(ICommand<,>);
-        var commandHandlers = assembly.GetTypes()
-            .Where(type => type is { IsClass: true, IsAbstract: false })
-            .Where(type => type.GetInterfaces()
-                .Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == commandHandlerType))
-            .ToList();
-
-        foreach (var handlerType in commandHandlers)
-        {
-            var interfaceType = handlerType.GetInterfaces()
-                .First(i => i.IsGenericType && i.GetGenericTypeDefinition() == commandHandlerType);
-
-            services.AddScoped(interfaceType, handlerType);
-        }
 
         return services;
     }

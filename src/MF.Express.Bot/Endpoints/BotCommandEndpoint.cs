@@ -1,4 +1,4 @@
-using MF.Express.Bot.Application.Commands;
+using MF.Express.Bot.Application.UseCases.BotCommands;
 using MF.Express.Bot.Api.DTOs.BotCommand;
 using MF.Express.Bot.Api.DTOs.Common;
 using Microsoft.Extensions.Options;
@@ -23,7 +23,7 @@ public class BotCommandEndpoint : IEndpoint
     private static async Task<IResult> HandleAsync(
         HttpContext httpContext,
         BotCommandDto dto,
-        ICommand<ProcessBotXCommandCommand, Application.Models.BotCommand.BotApiResponseAppModel> handler,
+        IProcessBotCommandUseCase useCase,
         IOptions<ExpressBotConfiguration> config,
         ILogger<BotCommandEndpoint> logger,
         CancellationToken ct)
@@ -51,13 +51,12 @@ public class BotCommandEndpoint : IEndpoint
                 return Results.BadRequest(new { error = "Invalid bot_id" });
             }
 
-            var command = BotCommandDto.ToCommand(dto);
+            var request = BotCommandDto.ToRequest(dto);
             
-            var resultAppModel = await handler.Handle(command, ct);
+            await useCase.ExecuteAsync(request, ct);
 
             logger.LogDebug("Команда Bot API v4 успешно обработана: {SyncId}", dto.SyncId);
-            var responseDto = BotApiResponseDto.FromAppModel(resultAppModel);
-            return Results.Json(responseDto, statusCode: 202);
+            return Results.Json(new BotApiResponseDto(), statusCode: 202);
         }
         catch (Exception ex)
         {

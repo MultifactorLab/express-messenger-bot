@@ -1,5 +1,5 @@
 using System.Text.Json.Serialization;
-using MF.Express.Bot.Application.Commands;
+using MF.Express.Bot.Application.UseCases.Notifications;
 
 namespace MF.Express.Bot.Api.DTOs.NotificationCallback;
 
@@ -12,9 +12,9 @@ public record NotificationCallbackDto(
     [property: JsonPropertyName("error_data")] object? ErrorData = null
 )
 {
-    public static ProcessNotificationCallbackCommand ToCommand(NotificationCallbackDto dto)
+    public static NotificationCallbackRequest ToRequest(NotificationCallbackDto dto)
     {
-        return new ProcessNotificationCallbackCommand(
+        return new NotificationCallbackRequest(
             SyncId: dto.SyncId,
             Status: dto.Status,
             Result: dto.Result,

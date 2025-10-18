@@ -68,7 +68,6 @@ app.MapHealthChecks("/health/ready", new HealthCheckOptions
     Predicate = check => check.Tags.Contains("ready")
 });
 app.MapHealthChecks("/healthz");
-
-app.MapSimpleEndpoints();
+app.MapEndpoints();
 
 app.Run();

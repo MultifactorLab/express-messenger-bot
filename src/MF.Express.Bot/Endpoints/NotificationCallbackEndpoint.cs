@@ -1,8 +1,7 @@
-using MF.Express.Bot.Application.Commands;
+using MF.Express.Bot.Application.UseCases.Notifications;
 using MF.Express.Bot.Api.DTOs.BotCommand;
 using MF.Express.Bot.Api.DTOs.Common;
 using MF.Express.Bot.Api.DTOs.NotificationCallback;
-using MF.Express.Bot.Application.Models.NotificationCallback;
 using Microsoft.Extensions.Options;
 using MF.Express.Bot.Infrastructure.Configuration;
 
@@ -24,7 +23,7 @@ public class NotificationCallbackEndpoint : IEndpoint
 
     private static async Task<IResult> HandleAsync(
         NotificationCallbackDto dto,
-        ICommand<ProcessNotificationCallbackCommand, NotificationResultAppModel> handler,
+        IProcessNotificationCallbackUseCase useCase,
         IOptions<ExpressBotConfiguration> config,
         ILogger<NotificationCallbackEndpoint> logger,
         CancellationToken ct)
@@ -50,9 +49,9 @@ public class NotificationCallbackEndpoint : IEndpoint
                         dto.SyncId, dto.Status);
                     break;
             }
-            var command = NotificationCallbackDto.ToCommand(dto);
-
-            await handler.Handle(command, ct);
+            
+            var request = NotificationCallbackDto.ToRequest(dto);
+            await useCase.ExecuteAsync(request, ct);
 
             logger.LogDebug("Notification callback успешно обработан: {SyncId}", dto.SyncId);
 
