@@ -13,7 +13,10 @@ public record SendAuthRequestRequest(
     string UserId,
     string AuthRequestId,
     string Message,
-    string? ResourceName = null
+    string ApproveButtonText,
+    string RejectButtonText,
+    string ApproveButtonCallbackData,
+    string RejectButtonCallbackData
 );
 
 public record SendAuthRequestResult(
@@ -52,8 +55,12 @@ public class SendAuthRequestUseCase : ISendAuthRequestUseCase
             _logger.LogInformation("Отправка запроса авторизации {AuthRequestId} пользователю {UserId} в чат {ChatId}",
                 request.AuthRequestId, request.UserId, request.ChatId);
 
-            var messageText = FormatAuthMessage(request);
-            var inlineKeyboard = CreateAuthButtons(request.AuthRequestId);
+            var messageText = request.Message;
+            var inlineKeyboard = CreateAuthButtons(
+                request.ApproveButtonText, 
+                request.ApproveButtonCallbackData,
+                request.RejectButtonText,
+                request.RejectButtonCallbackData);
 
             var success = await _botXApiService.SendMessageWithInlineKeyboardAsync(
                 request.ChatId,
@@ -88,31 +95,18 @@ public class SendAuthRequestUseCase : ISendAuthRequestUseCase
         }
     }
 
-    private static string FormatAuthMessage(SendAuthRequestRequest request)
-    {
-        var resourceInfo = !string.IsNullOrEmpty(request.ResourceName) 
-            ? $"\n🏢 Ресурс: {request.ResourceName}" 
-            : "";
-
-        return $"""
-            🔐 Запрос на авторизацию
-            
-            {request.Message}{resourceInfo}
-            
-            ⏰ Время: {DateTime.Now:HH:mm:ss}
-            
-            Подтвердите или отклоните доступ:
-            """;
-    }
-
-    private static List<List<InlineKeyboardButtonModel>> CreateAuthButtons(string authRequestId)
+    private static List<List<InlineKeyboardButtonModel>> CreateAuthButtons(
+        string approveText,
+        string approveCallbackData,
+        string rejectText,
+        string rejectCallbackData)
     {
         return
         [
             new List<InlineKeyboardButtonModel>()
             {
-                new("✅ Разрешить", $"auth_allow_{authRequestId}"),
-                new("❌ Отклонить", $"auth_deny_{authRequestId}")    
+                new(approveText, approveCallbackData),
+                new(rejectText, rejectCallbackData)    
             }
         ];
     }

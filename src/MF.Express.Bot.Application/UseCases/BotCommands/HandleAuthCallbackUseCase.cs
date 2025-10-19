@@ -10,13 +10,8 @@ public interface IHandleAuthCallbackUseCase : IUseCase<AuthCallbackRequest, Auth
 }
 
 public record AuthCallbackRequest(
-    string CallbackId,
-    string AuthRequestId,
-    string UserId,
-    string ChatId,
-    AuthAction Action,
-    string? MessageId = null,
-    Dictionary<string, object>? Metadata = null
+    string CallbackData,
+    string ChatId
 );
 
 public record AuthCallbackResult(
@@ -41,19 +36,13 @@ public class HandleAuthCallbackUseCase : IHandleAuthCallbackUseCase
         AuthCallbackRequest request, 
         CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation("Обработка callback от кнопки авторизации: {AuthRequestId}, действие: {Action}, пользователь: {UserId}", 
-            request.AuthRequestId, request.Action, request.UserId);
+        _logger.LogInformation("Обработка callback от кнопки авторизации. ChatId: {ChatId}", request.ChatId);
 
         try
         {
             await _authProcessingService.ProcessAuthCallbackAsync(
-                callbackId: request.CallbackId,
-                authRequestId: request.AuthRequestId,
-                userId: request.UserId,
+                callbackData: request.CallbackData,
                 chatId: request.ChatId,
-                action: request.Action,
-                messageId: request.MessageId,
-                metadata: request.Metadata,
                 cancellationToken: cancellationToken
             );
 
@@ -61,7 +50,7 @@ public class HandleAuthCallbackUseCase : IHandleAuthCallbackUseCase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Ошибка при обработке callback'а авторизации {AuthRequestId}", request.AuthRequestId);
+            _logger.LogError(ex, "Ошибка при обработке callback'а авторизации");
             return new AuthCallbackResult(false, ex.Message);
         }
     }

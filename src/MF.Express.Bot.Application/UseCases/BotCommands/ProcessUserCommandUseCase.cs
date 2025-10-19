@@ -95,30 +95,9 @@ public class ProcessUserCommandUseCase : IProcessUserCommandUseCase
                     return new UserCommandResult(true);
                 }
 
-                var parts = callbackData.Split(':', 2);
-                if (parts.Length != 2)
-                {
-                    _logger.LogWarning("Неверный формат callback данных: {CallbackData}", callbackData);
-                    return new UserCommandResult(true);
-                }
-
-                var authRequestId = parts[0];
-                var actionStr = parts[1];
-
-                if (!Enum.TryParse<AuthAction>(actionStr, true, out var action))
-                {
-                    _logger.LogWarning("Неизвестное действие callback'а: {Action}", actionStr);
-                    return new UserCommandResult(true);
-                }
-
                 var callbackRequest = new AuthCallbackRequest(
-                    CallbackId: request.SyncId,
-                    AuthRequestId: authRequestId,
-                    UserId: request.UserHuid ?? "unknown",
-                    ChatId: request.GroupChatId ?? "private",
-                    Action: action,
-                    MessageId: request.SourceSyncId,
-                    Metadata: request.CommandMetadata
+                    CallbackData: callbackData,
+                    ChatId: request.GroupChatId ?? "private"
                 );
 
                 var result = await _handleAuthCallbackUseCase.ExecuteAsync(callbackRequest, cancellationToken);
@@ -157,8 +136,7 @@ public class ProcessUserCommandUseCase : IProcessUserCommandUseCase
         return request.CommandData?.ContainsKey("callback_data") == true ||
                request.CommandData?.ContainsKey("button_data") == true ||
                request.CommandBody.StartsWith("callback:", StringComparison.OrdinalIgnoreCase) ||
-               request.CommandBody.StartsWith("auth_allow_", StringComparison.OrdinalIgnoreCase) ||
-               request.CommandBody.StartsWith("auth_deny_", StringComparison.OrdinalIgnoreCase);
+               (request.CommandBody.Contains(':') && request.CommandBody.Split(':').Length >= 2);
     }
 
     private static string? ExtractCallbackData(UserCommandRequest request)
@@ -178,16 +156,9 @@ public class ProcessUserCommandUseCase : IProcessUserCommandUseCase
             return request.CommandBody[9..];
         }
 
-        if (request.CommandBody.StartsWith("auth_allow_", StringComparison.OrdinalIgnoreCase))
+        if (request.CommandBody.Contains(':'))
         {
-            var authRequestId = request.CommandBody[11..];
-            return $"{authRequestId}:Allow";
-        }
-
-        if (request.CommandBody.StartsWith("auth_deny_", StringComparison.OrdinalIgnoreCase))
-        {
-            var authRequestId = request.CommandBody[10..];
-            return $"{authRequestId}:Deny";
+            return request.CommandBody;
         }
 
         return null;

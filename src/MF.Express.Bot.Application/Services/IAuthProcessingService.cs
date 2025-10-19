@@ -6,13 +6,8 @@ namespace MF.Express.Bot.Application.Services;
 public interface IAuthProcessingService
 {
     Task<CommandProcessedResponse> ProcessAuthCallbackAsync(
-        string callbackId,
-        string authRequestId,
-        string userId,
+        string callbackData,
         string chatId,
-        AuthAction action,
-        string? messageId = null,
-        Dictionary<string, object>? metadata = null,
         CancellationToken cancellationToken = default);
 }
 

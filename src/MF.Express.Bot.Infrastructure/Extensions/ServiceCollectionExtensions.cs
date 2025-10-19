@@ -12,6 +12,7 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddInfrastructure(this IServiceCollection services)
     {
         services.AddMultifactorApiService();
+        services.AddMfExpressApiService();
         services.AddBotXApiService();
         services.AddApplicationServices();
         return services;
@@ -48,6 +49,20 @@ public static class ServiceCollectionExtensions
         });
 
         services.AddScoped<IMultifactorApiService, MultifactorApiService>();
+
+        return services;
+    }
+
+    public static IServiceCollection AddMfExpressApiService(this IServiceCollection services)
+    {
+        services.AddHttpClient("MfExpressApi", (serviceProvider, client) =>
+        {
+            var config = serviceProvider.GetRequiredService<IOptions<MfExpressApiConfiguration>>().Value;
+            client.BaseAddress = new Uri(config.BaseUrl);
+            client.Timeout = TimeSpan.FromSeconds(config.TimeoutSeconds);
+        });
+
+        services.AddScoped<IMfExpressApiService, MfExpressApiService>();
 
         return services;
     }
