@@ -1,7 +1,7 @@
 using FluentValidation;
 using FluentValidation.AspNetCore;
-using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using MF.Express.Bot.Api.Extensions;
+using MF.Express.Bot.Api.HealthCheck;
 using MF.Express.Bot.Api.Middleware;
 using MF.Express.Bot.Infrastructure.Configuration;
 using MF.Express.Bot.Infrastructure.Extensions;
@@ -41,7 +41,11 @@ builder.Services.AddInfrastructure();
 builder.Services.AddApplication();
 builder.Services.AddExceptionHandler<ExpressBotExceptionHandler>();
 builder.Services.AddProblemDetails();
-builder.Services.AddExpressBotHealthChecks();
+
+// Health Checks
+builder.AddSelfHealthCheck();
+builder.AddBotXApiHealthCheck();
+builder.AddMultifactorApiHealthCheck();
 
 var app = builder.Build();
 
@@ -62,12 +66,7 @@ if (app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "Local
 
 app.UseBotXJwtValidation();
 
-app.MapHealthChecks("/health/live");
-app.MapHealthChecks("/health/ready", new HealthCheckOptions
-{
-    Predicate = check => check.Tags.Contains("ready")
-});
-app.MapHealthChecks("/healthz");
+app.UseHealthCheck();
 app.MapEndpoints();
 
 app.Run();

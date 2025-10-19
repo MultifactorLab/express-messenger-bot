@@ -12,8 +12,7 @@ public record SendAuthRequestDto(
     [property: JsonPropertyName("reject_button_text")] string? RejectButtonText = null,
     [property: JsonPropertyName("approve_button_callback_data")] string? ApproveButtonCallbackData = null,
     [property: JsonPropertyName("reject_button_callback_data")] string? RejectButtonCallbackData = null,
-    [property: JsonPropertyName("resource_name")] string? ResourceName = null,
-    [property: JsonPropertyName("metadata")] Dictionary<string, object>? Metadata = null
+    [property: JsonPropertyName("resource_name")] string? ResourceName = null
 )
 {
     public static SendAuthRequestRequest ToRequest(SendAuthRequestDto dto)
@@ -23,8 +22,7 @@ public record SendAuthRequestDto(
             UserId: dto.UserId,
             AuthRequestId: dto.AuthRequestId,
             Message: dto.Message,
-            ResourceName: dto.ResourceName,
-            Metadata: dto.Metadata
+            ResourceName: dto.ResourceName
         );
     }
 }

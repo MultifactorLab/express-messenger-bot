@@ -13,8 +13,7 @@ public record SendAuthRequestRequest(
     string UserId,
     string AuthRequestId,
     string Message,
-    string? ResourceName = null,
-    Dictionary<string, object>? Metadata = null
+    string? ResourceName = null
 );
 
 public record SendAuthRequestResult(

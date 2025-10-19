@@ -12,7 +12,6 @@ public class SendAuthRequestEndpoint : IEndpoint
     {
         app.MapPost("/send-auth-request", HandleAsync)
             .WithName("SendAuthRequest")
-            .Produces<SendAuthResponseDto>(StatusCodes.Status200OK)
             .Produces<SendAuthResponseDto>(StatusCodes.Status400BadRequest)
             .Produces<SendAuthResponseDto>(StatusCodes.Status500InternalServerError)
             .Produces<SendAuthResponseDto>(StatusCodes.Status502BadGateway)
