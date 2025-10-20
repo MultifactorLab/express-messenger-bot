@@ -8,7 +8,6 @@ public interface IProcessBotCommandUseCase : IUseCase<BotCommandRequest, BotComm
 
 public record BotCommandRequest(
     string SyncId,
-    string? SourceSyncId,
     string CommandType,
     string CommandBody,
     Dictionary<string, object>? CommandData,
@@ -17,14 +16,7 @@ public record BotCommandRequest(
     string? GroupChatId,
     string? ChatType,
     string? Username,
-    string? AdLogin,
-    string? AdDomain,
-    bool? IsAdmin,
-    bool? IsCreator,
     string? Device,
-    string? DeviceSoftware,
-    string? Platform,
-    string? AppVersion,
     string? Locale,
     string Host,
     string BotId,
@@ -80,20 +72,14 @@ public class ProcessBotCommandUseCase : IProcessBotCommandUseCase
     {
         var userRequest = new UserCommandRequest(
             SyncId: request.SyncId,
-            SourceSyncId: request.SourceSyncId,
             CommandBody: request.CommandBody,
             CommandData: request.CommandData,
             CommandMetadata: request.CommandMetadata,
             UserHuid: request.UserHuid,
             GroupChatId: request.GroupChatId,
-            ChatType: request.ChatType,
+            BotId: request.BotId,
             Username: request.Username,
-            AdLogin: request.AdLogin,
-            AdDomain: request.AdDomain,
             Device: request.Device,
-            DeviceSoftware: request.DeviceSoftware,
-            Platform: request.Platform,
-            AppVersion: request.AppVersion,
             Locale: request.Locale
         );
 
@@ -109,10 +95,7 @@ public class ProcessBotCommandUseCase : IProcessBotCommandUseCase
             SyncId: request.SyncId,
             CommandBody: request.CommandBody,
             GroupChatId: request.GroupChatId,
-            ChatType: request.ChatType,
-            UserHuid: request.UserHuid,
-            Host: request.Host,
-            ProtoVersion: request.ProtoVersion
+            UserHuid: request.UserHuid
         );
 
         var result = await _processSystemCommandUseCase.ExecuteAsync(systemRequest, cancellationToken);

@@ -11,6 +11,8 @@ public class MfExpressApiConfiguration
     
     public int TimeoutSeconds { get; set; } = 30;
     
+    public string ChatCreatedEndpoint { get; set; } = "/api/express/webhook/chat-created";
+    
     public string AuthCallbackEndpoint { get; set; } = "/api/express/webhook/auth-callback";
 }
 

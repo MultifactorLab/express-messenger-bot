@@ -9,20 +9,14 @@ public interface IProcessUserCommandUseCase : IUseCase<UserCommandRequest, UserC
 
 public record UserCommandRequest(
     string SyncId,
-    string? SourceSyncId,
     string CommandBody,
     Dictionary<string, object>? CommandData,
     Dictionary<string, object>? CommandMetadata,
     string? UserHuid,
     string? GroupChatId,
-    string? ChatType,
+    string? BotId,
     string? Username,
-    string? AdLogin,
-    string? AdDomain,
     string? Device,
-    string? DeviceSoftware,
-    string? Platform,
-    string? AppVersion,
     string? Locale
 );
 
@@ -61,20 +55,26 @@ public class ProcessUserCommandUseCase : IProcessUserCommandUseCase
         {
             if (IsStartCommand(request))
             {
+                var requestId = ExtractRequestId(request);
+                
+                if (string.IsNullOrEmpty(requestId))
+                {
+                    _logger.LogWarning("Команда /start без requestId. Регистрация чата невозможна. CommandBody: {CommandBody}", 
+                        request.CommandBody);
+                    return new UserCommandResult(false, "Request ID is required for chat registration");
+                }
+                
+                _logger.LogInformation("Извлечен requestId: {RequestId} для ExpressUserId {UserHuid}", 
+                    requestId, request.UserHuid);
+
                 var startRequest = new StartCommandRequest(
-                    UserId: request.UserHuid ?? "unknown",
-                    ChatId: request.GroupChatId ?? "private",
+                    ExpressUserId: request.UserHuid,
+                    ChatId: request.GroupChatId,
+                    BotId: request.BotId,
+                    RequestId: requestId,
                     Username: request.Username,
-                    FirstName: ExtractFromData(request.CommandData, "first_name"),
-                    LastName: ExtractFromData(request.CommandData, "last_name"),
-                    AdLogin: request.AdLogin,
-                    AdDomain: request.AdDomain,
-                    ChatType: request.ChatType,
-                    Platform: request.Platform,
-                    AppVersion: request.AppVersion,
                     Device: request.Device,
-                    Locale: request.Locale,
-                    Metadata: request.CommandMetadata
+                    Locale: request.Locale
                 );
 
                 var result = await _handleStartCommandUseCase.ExecuteAsync(startRequest, cancellationToken);
@@ -167,5 +167,36 @@ public class ProcessUserCommandUseCase : IProcessUserCommandUseCase
     private static string? ExtractFromData(Dictionary<string, object>? data, string key)
     {
         return data?.TryGetValue(key, out var value) == true ? value?.ToString() : null;
+    }
+
+    private static string? ExtractRequestId(UserCommandRequest request)
+    {
+        if (request.CommandData?.TryGetValue("Value", out var valueObj) == true)
+        {
+            var value = valueObj?.ToString();
+            if (!string.IsNullOrEmpty(value))
+            {
+                var match = System.Text.RegularExpressions.Regex.Match(value, @"/req=([^\s]+)");
+                if (match.Success && match.Groups.Count > 1)
+                {
+                    return match.Groups[1].Value;
+                }
+            }
+        }
+
+        if (request.CommandData?.TryGetValue("command", out var commandObj) == true)
+        {
+            var commandValue = commandObj?.ToString();
+            if (!string.IsNullOrEmpty(commandValue))
+            {
+                var match = System.Text.RegularExpressions.Regex.Match(commandValue, @"/req=([^\s]+)");
+                if (match.Success && match.Groups.Count > 1)
+                {
+                    return match.Groups[1].Value;
+                }
+            }
+        }
+
+        return null;
     }
 }

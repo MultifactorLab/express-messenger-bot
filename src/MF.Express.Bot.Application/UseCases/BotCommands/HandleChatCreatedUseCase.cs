@@ -10,10 +10,7 @@ public interface IHandleChatCreatedUseCase : IUseCase<ChatCreatedRequest, ChatCr
 
 public record ChatCreatedRequest(
     string ChatId,
-    string? UserId = null,
-    string? ChatType = null,
-    string? Host = null,
-    int ProtoVersion = 0
+    string? UserId = null
 );
 
 public record ChatCreatedResult(
@@ -47,7 +44,7 @@ public class HandleChatCreatedUseCase : IHandleChatCreatedUseCase
 
         try
         {
-            var welcomeMessage = FormatWelcomeMessage(request);
+            var welcomeMessage = FormatWelcomeMessage();
             var keyboard = CreateStartButton();
 
             var success = await _botXApiService.SendMessageWithInlineKeyboardAsync(
@@ -77,17 +74,10 @@ public class HandleChatCreatedUseCase : IHandleChatCreatedUseCase
         }
     }
 
-    private static string FormatWelcomeMessage(ChatCreatedRequest request)
+    private static string FormatWelcomeMessage()
     {
         return $"""
             🎉 **Добро пожаловать в чат с ExpressBot!**
-            
-            📋 **Информация о чате:**
-            • Chat ID: {request.ChatId}
-            • Chat Type: {request.ChatType ?? "не указан"}
-            • Host: {request.Host ?? "не указан"}
-            • Protocol Version: {request.ProtoVersion}
-            
             🤖 **Доступные команды:**
             • `/start` - получить ваши данные пользователя
             

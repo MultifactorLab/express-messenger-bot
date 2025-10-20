@@ -10,10 +10,7 @@ public record SystemCommandRequest(
     string SyncId,
     string CommandBody,
     string? GroupChatId,
-    string? ChatType,
-    string? UserHuid,
-    string? Host,
-    int ProtoVersion
+    string? UserHuid
 );
 
 public record SystemCommandResult(
@@ -48,11 +45,8 @@ public class ProcessSystemCommandUseCase : IProcessSystemCommandUseCase
                     request.SyncId, request.GroupChatId);
 
                 var chatCreatedRequest = new ChatCreatedRequest(
-                    ChatId: request.GroupChatId ?? "private",
-                    UserId: request.UserHuid,
-                    ChatType: request.ChatType,
-                    Host: request.Host,
-                    ProtoVersion: request.ProtoVersion
+                    ChatId: request.GroupChatId,
+                    UserId: request.UserHuid
                 );
 
                 var result = await _handleChatCreatedUseCase.ExecuteAsync(chatCreatedRequest, cancellationToken);
