@@ -6,22 +6,6 @@ namespace MF.Express.Bot.Application.UseCases.BotCommands;
 public interface IHandleStartCommandUseCase : IUseCase<StartCommandRequest, StartCommandResult>
 {
 }
-
-public record StartCommandRequest(
-    string ExpressUserId,
-    string ChatId,
-    string BotId,
-    string RequestId,
-    string? Username = null,
-    string? Device = null,
-    string? Locale = null
-);
-
-public record StartCommandResult(
-    bool Success,
-    string? ErrorMessage = null
-);
-
 public class HandleStartCommandUseCase : IHandleStartCommandUseCase
 {
     private readonly IMfExpressApiService _mfApiService;
@@ -44,7 +28,7 @@ public class HandleStartCommandUseCase : IHandleStartCommandUseCase
 
         try
         {
-            var success = await _mfApiService.SendStartCommandAsync(
+            var success = await _mfApiService.SendChatCreatedCallbackAsync(
                 request.ChatId,
                 request.ExpressUserId,
                 request.BotId,
@@ -74,3 +58,19 @@ public class HandleStartCommandUseCase : IHandleStartCommandUseCase
         }
     }
 }
+
+
+public record StartCommandRequest(
+    string ExpressUserId,
+    string ChatId,
+    string BotId,
+    string RequestId,
+    string? Username = null,
+    string? Device = null,
+    string? Locale = null
+);
+
+public record StartCommandResult(
+    bool Success,
+    string? ErrorMessage = null
+);

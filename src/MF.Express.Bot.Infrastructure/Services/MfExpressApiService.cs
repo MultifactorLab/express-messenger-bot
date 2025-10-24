@@ -71,7 +71,7 @@ public class MfExpressApiService : IMfExpressApiService
         }
     }
 
-    public async Task<bool> SendStartCommandAsync(
+    public async Task<bool> SendChatCreatedCallbackAsync(
         string chatId,
         string expressUserId,
         string botId,

@@ -15,7 +15,7 @@ public class ExpressBotConfiguration
     [Required]
     public string BotSecretKey { get; set; } = string.Empty;
 
- [Required]
+    [Required]
     public string BotXApiBaseUrl { get; set; } = string.Empty;
 
     [Required]

@@ -51,7 +51,7 @@ public class NotificationCallbackEndpoint : IEndpoint
             }
             
             var request = NotificationCallbackDto.ToRequest(dto);
-            await useCase.ExecuteAsync(request, ct);
+            useCase.ExecuteAsync(request, ct);
 
             logger.LogDebug("Notification callback успешно обработан: {SyncId}", dto.SyncId);
 

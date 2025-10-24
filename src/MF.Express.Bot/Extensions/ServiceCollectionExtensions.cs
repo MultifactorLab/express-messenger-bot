@@ -30,6 +30,7 @@ public static class ServiceCollectionExtensions
         
         // Auth
         services.AddScoped<ISendAuthRequestUseCase, SendAuthRequestUseCase>();
+        services.AddScoped<ISendAuthResultUseCase, SendAuthResultUseCase>();
         
         // Notifications
         services.AddScoped<IProcessNotificationCallbackUseCase, ProcessNotificationCallbackUseCase>();

@@ -4,10 +4,7 @@ namespace MF.Express.Bot.Infrastructure.Configuration;
 
 public class MfExpressApiConfiguration
 {
-    public const string SectionName = "MfExpressApi";
-    
-    [Required]
-    public string BaseUrl { get; set; } = null!;
+    [Required] public string BaseUrl { get; set; } = "https://mf-express-service.ru.tuna.am/";
     
     public int TimeoutSeconds { get; set; } = 30;
     

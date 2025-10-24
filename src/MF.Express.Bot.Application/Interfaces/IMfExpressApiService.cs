@@ -7,7 +7,7 @@ public interface IMfExpressApiService
         string chatId,
         CancellationToken cancellationToken = default);
     
-    Task<bool> SendStartCommandAsync(
+    Task<bool> SendChatCreatedCallbackAsync(
         string chatId,
         string expressUserId,
         string botId,
