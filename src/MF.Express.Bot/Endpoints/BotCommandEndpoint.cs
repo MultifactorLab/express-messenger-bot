@@ -1,15 +1,12 @@
 using MF.Express.Bot.Application.UseCases.BotCommands;
 using MF.Express.Bot.Api.DTOs.BotCommand;
 using MF.Express.Bot.Api.DTOs.Common;
+using MF.Express.Bot.Application.UseCases;
 using Microsoft.Extensions.Options;
 using MF.Express.Bot.Infrastructure.Configuration;
 
 namespace MF.Express.Bot.Api.Endpoints;
 
-/// <summary>
-/// Bot API v4 endpoint для обработки команд от BotX
-/// https://docs.express.ms/chatbots/developer-guide/api/bot-api/command/
-/// </summary>
 public class BotCommandEndpoint : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
@@ -23,7 +20,7 @@ public class BotCommandEndpoint : IEndpoint
     private static async Task<IResult> HandleAsync(
         HttpContext httpContext,
         BotCommandDto dto,
-        IProcessBotCommandUseCase useCase,
+        IUseCase<BotCommandRequest, BotCommandResult> useCase,
         IOptions<ExpressBotConfiguration> config,
         ILogger<BotCommandEndpoint> logger,
         CancellationToken ct)
@@ -33,19 +30,13 @@ public class BotCommandEndpoint : IEndpoint
             var audienceClaim = httpContext.User.FindFirst("aud")?.Value;
             if (audienceClaim != dto.BotId)
             {
-                logger.LogWarning(
-                    "Security violation: JWT audience mismatch. JWT aud={JwtAudience}, body bot_id={BodyBotId}",
-                    audienceClaim ?? "null",
-                    dto.BotId);
-                
-                return Results.Json(
-                    new { error = "Unauthorized" },
-                    statusCode: 401);
+                logger.LogWarning("Security violation: JWT audience mismatch");
+                return Results.Unauthorized();
             }
 
             if (dto.BotId != config.Value.BotId)
             {
-                logger.LogWarning("Получена команда для другого бота: {CommandBotId}, ожидался: {ConfigBotId}", 
+                logger.LogWarning("Command for different bot received. CommandBotId: {CommandBotId:l}, ConfigBotId: {ConfigBotId:l}", 
                     dto.BotId, config.Value.BotId);
                 
                 return Results.BadRequest(new { error = "Invalid bot_id" });
@@ -55,12 +46,12 @@ public class BotCommandEndpoint : IEndpoint
             
             await useCase.ExecuteAsync(request, ct);
 
-            logger.LogDebug("Команда Bot API v4 успешно обработана: {SyncId}", dto.SyncId);
+            logger.LogDebug("Bot API v4 command processed successfully. SyncId: {SyncId:l}", dto.SyncId);
             return Results.Json(new BotApiResponseDto(), statusCode: 202);
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Ошибка при обработке команды Bot API v4: {SyncId}", dto.SyncId);
+            logger.LogError(ex, "Failed to process Bot API v4 command. SyncId: {SyncId:l}", dto.SyncId);
             return Results.Json(new BotApiResponseDto(), statusCode: 202);
         }
     }

@@ -10,10 +10,6 @@ using MF.Express.Bot.Infrastructure.Configuration;
 
 namespace MF.Express.Bot.Infrastructure.Services;
 
-/// <summary>
-/// Сервис для взаимодействия с BotX API
-/// Основан на документации https://docs.express.ms/chatbots/developer-guide/api/botx-api/
-/// </summary>
 public class BotXApiService : IBotXApiService
 {
     private readonly IHttpClientFactory _httpClientFactory;
@@ -40,7 +36,7 @@ public class BotXApiService : IBotXApiService
             var token = await GetBotTokenAsync(cancellationToken);
             if (string.IsNullOrEmpty(token))
             {
-                _logger.LogError("Не удалось получить токен для отправки сообщения");
+                _logger.LogError("Failed to get token for sending message");
                 return false;
             }
 
@@ -61,19 +57,19 @@ public class BotXApiService : IBotXApiService
 
             if (response.IsSuccessStatusCode)
             {
-                _logger.LogInformation("Сообщение успешно отправлено в чат {ChatId}", chatId);
+                _logger.LogInformation("Message sent successfully. ChatId: {ChatId:l}", chatId);
                 return true;
             }
 
             var errorContent = await response.Content.ReadAsStringAsync(cancellationToken);
-            _logger.LogWarning("Ошибка отправки сообщения в чат {ChatId}: {StatusCode} - {Content}", 
+            _logger.LogWarning("Failed to send message. ChatId: {ChatId:l}, StatusCode: {StatusCode:l}, Content: {Content:l}", 
                 chatId, response.StatusCode, errorContent);
             
             return false;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Исключение при отправке сообщения в чат {ChatId}", chatId);
+            _logger.LogError(ex, "Exception sending message. ChatId: {ChatId:l}", chatId);
             return false;
         }
     }
@@ -85,7 +81,7 @@ public class BotXApiService : IBotXApiService
             var token = await GetBotTokenAsync(cancellationToken);
             if (string.IsNullOrEmpty(token))
             {
-                _logger.LogError("Не удалось получить токен для отправки сообщения с кнопками");
+                _logger.LogError("Failed to get token for sending message with buttons");
                 return false;
             }
 
@@ -112,19 +108,19 @@ public class BotXApiService : IBotXApiService
 
             if (response.IsSuccessStatusCode)
             {
-                _logger.LogInformation("Сообщение с кнопками успешно отправлено в чат {ChatId}", chatId);
+                _logger.LogInformation("Message with buttons sent successfully. ChatId: {ChatId:l}", chatId);
                 return true;
             }
 
             var errorContent = await response.Content.ReadAsStringAsync(cancellationToken);
-            _logger.LogWarning("Ошибка отправки сообщения с кнопками в чат {ChatId}: {StatusCode} - {Content}", 
+            _logger.LogWarning("Failed to send message with buttons. ChatId: {ChatId:l}, StatusCode: {StatusCode:l}, Content: {Content:l}", 
                 chatId, response.StatusCode, errorContent);
             
             return false;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Исключение при отправке сообщения с кнопками в чат {ChatId}", chatId);
+            _logger.LogError(ex, "Exception sending message with buttons. ChatId: {ChatId:l}", chatId);
             return false;
         }
     }
@@ -144,7 +140,7 @@ public class BotXApiService : IBotXApiService
                 return _cachedToken;
             }
 
-            _logger.LogDebug("Получение нового токена для бота {BotId}", _config.BotId);
+            _logger.LogDebug("Getting new token. BotId: {BotId:l}", _config.BotId);
 
             var client = _httpClientFactory.CreateClient("BotX");
             var signature = GenerateSignature(_config.BotId, _config.BotSecretKey);
@@ -155,7 +151,7 @@ public class BotXApiService : IBotXApiService
             if (!response.IsSuccessStatusCode)
             {
                 var errorContent = await response.Content.ReadAsStringAsync(cancellationToken);
-                _logger.LogError("Ошибка получения токена: {StatusCode} - {Content}", response.StatusCode, errorContent);
+                _logger.LogError("Token request failed. StatusCode: {StatusCode:l}, Content: {Content:l}", response.StatusCode, errorContent);
                 return null;
             }
 
@@ -167,16 +163,16 @@ public class BotXApiService : IBotXApiService
                 _cachedToken = resultElement.GetString();
                 _tokenExpiresAt = DateTime.UtcNow.AddMinutes(55);
                 
-                _logger.LogInformation("Токен для бота успешно получен, действует до {ExpiresAt}", _tokenExpiresAt);
+                _logger.LogInformation("Token obtained successfully. ExpiresAt: {ExpiresAt:l}", _tokenExpiresAt);
                 return _cachedToken;
             }
 
-            _logger.LogError("Некорректный формат ответа при получении токена: {Content}", responseContent);
+            _logger.LogError("Invalid token response format. Content: {Content:l}", responseContent);
             return null;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Исключение при получении токена для бота {BotId}", _config.BotId);
+            _logger.LogError(ex, "Exception getting token. BotId: {BotId:l}", _config.BotId);
             return null;
         }
         finally
@@ -203,7 +199,7 @@ public class BotXApiService : IBotXApiService
             var token = await GetBotTokenAsync(cancellationToken);
             if (string.IsNullOrEmpty(token))
             {
-                _logger.LogWarning("Не удалось получить токен для ответа на команду {SyncId}", syncId);
+                _logger.LogWarning("Failed to get token for command reply. SyncId: {SyncId:l}", syncId);
                 return false;
             }
 
@@ -223,19 +219,19 @@ public class BotXApiService : IBotXApiService
 
             if (response.IsSuccessStatusCode)
             {
-                _logger.LogInformation("Ответ на команду {SyncId} успешно отправлен", syncId);
+                _logger.LogInformation("Command reply sent successfully. SyncId: {SyncId:l}", syncId);
                 return true;
             }
 
             var errorContent = await response.Content.ReadAsStringAsync(cancellationToken);
-            _logger.LogWarning("Ошибка отправки ответа на команду {SyncId}: {StatusCode} - {Content}", 
+            _logger.LogWarning("Failed to send command reply. SyncId: {SyncId:l}, StatusCode: {StatusCode:l}, Content: {Content:l}", 
                 syncId, response.StatusCode, errorContent);
             
             return false;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Исключение при отправке ответа на команду {SyncId}", syncId);
+            _logger.LogError(ex, "Exception sending command reply. SyncId: {SyncId:l}", syncId);
             return false;
         }
     }
@@ -247,7 +243,7 @@ public class BotXApiService : IBotXApiService
             var token = await GetBotTokenAsync(cancellationToken);
             if (string.IsNullOrEmpty(token))
             {
-                _logger.LogWarning("Не удалось получить токен для получения информации о пользователе {UserHuid}", userHuid);
+                _logger.LogWarning("Failed to get token for user info. UserHuid: {UserHuid:l}", userHuid);
                 return null;
             }
 
@@ -261,18 +257,18 @@ public class BotXApiService : IBotXApiService
                 var jsonContent = await response.Content.ReadAsStringAsync(cancellationToken);
                 var userInfo = JsonSerializer.Deserialize<BotXUserInfoModel>(jsonContent);
                 
-                _logger.LogDebug("Информация о пользователе {UserHuid} получена", userHuid);
+                _logger.LogDebug("User info retrieved. UserHuid: {UserHuid:l}", userHuid);
                 return userInfo;
             }
 
-            _logger.LogWarning("Ошибка получения информации о пользователе {UserHuid}: {StatusCode}", 
+            _logger.LogWarning("Failed to get user info. UserHuid: {UserHuid:l}, StatusCode: {StatusCode:l}", 
                 userHuid, response.StatusCode);
             
             return null;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Исключение при получении информации о пользователе {UserHuid}", userHuid);
+            _logger.LogError(ex, "Exception getting user info. UserHuid: {UserHuid:l}", userHuid);
             return null;
         }
     }

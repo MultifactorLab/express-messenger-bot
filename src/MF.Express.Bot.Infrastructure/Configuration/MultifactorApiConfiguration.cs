@@ -2,9 +2,6 @@ using System.ComponentModel.DataAnnotations;
 
 namespace MF.Express.Bot.Infrastructure.Configuration;
 
-/// <summary>
-/// Конфигурация для интеграции с Multifactor API
-/// </summary>
 public class MultifactorApiConfiguration
 {
     public const string SectionName = "MultifactorApi";

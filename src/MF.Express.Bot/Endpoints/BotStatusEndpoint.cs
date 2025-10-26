@@ -6,10 +6,6 @@ using MF.Express.Bot.Infrastructure.Configuration;
 
 namespace MF.Express.Bot.Api.Endpoints;
 
-/// <summary>
-/// Bot API v3/v4 endpoint для передачи статуса и списка команд бота
-/// Согласно документации https://docs.express.ms/chatbots/developer-guide/api/bot-api/status/
-/// </summary>
 public class BotStatusEndpoint : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
@@ -27,7 +23,7 @@ public class BotStatusEndpoint : IEndpoint
     {
         try
         {
-            logger.LogDebug("Запрос статуса бота {BotId}", config.Value.BotId);
+            logger.LogDebug("Bot status requested. BotId: {BotId:l}", config.Value.BotId);
 
             var commands = new List<BotCommandInfoModel>
             {
@@ -47,13 +43,13 @@ public class BotStatusEndpoint : IEndpoint
                 )
             );
             
-            logger.LogInformation("Статус бота успешно возвращен: {CommandCount} команд", commands.Count);
+            logger.LogInformation("Bot status returned successfully. CommandCount: {CommandCount:l}", commands.Count);
             var responseDto = BotStatusResponseDto.FromAppModel(statusModel);
             return Results.Ok(responseDto);
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Ошибка при получении статуса бота");
+            logger.LogError(ex, "Failed to get bot status");
 
             var errorResponse = new BotApiErrorResponseDto(
                 Reason: "internal_error",

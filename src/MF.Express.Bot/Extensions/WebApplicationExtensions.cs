@@ -13,6 +13,7 @@ public static class WebApplicationExtensions
         apiGroup.RegisterEndpoint<BotStatusEndpoint>();
         apiGroup.RegisterEndpoint<NotificationCallbackEndpoint>();
         apiGroup.RegisterEndpoint<SendAuthRequestEndpoint>();
+        apiGroup.RegisterEndpoint<SendAuthResultEndpoint>();
 
         return app;
     }

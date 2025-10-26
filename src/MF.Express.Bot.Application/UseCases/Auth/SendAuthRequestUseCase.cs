@@ -4,10 +4,6 @@ using Microsoft.Extensions.Logging;
 
 namespace MF.Express.Bot.Application.UseCases.Auth;
 
-public interface ISendAuthRequestUseCase : IUseCase<SendAuthRequestRequest, SendAuthRequestResult>
-{
-}
-
 public record SendAuthRequestRequest(
     string ChatId,
     string UserId,
@@ -33,7 +29,7 @@ public enum SendAuthErrorType
     InternalError
 }
 
-public class SendAuthRequestUseCase : ISendAuthRequestUseCase
+public class SendAuthRequestUseCase : IUseCase<SendAuthRequestRequest, SendAuthRequestResult>
 {
     private readonly IBotXApiService _botXApiService;
     private readonly ILogger<SendAuthRequestUseCase> _logger;
@@ -47,23 +43,23 @@ public class SendAuthRequestUseCase : ISendAuthRequestUseCase
     }
 
     public async Task<SendAuthRequestResult> ExecuteAsync(
-        SendAuthRequestRequest request, 
+        SendAuthRequestRequest botRequest, 
         CancellationToken cancellationToken = default)
     {
         try
         {
-            _logger.LogInformation("Отправка запроса авторизации {AuthRequestId} пользователю {UserId} в чат {ChatId}",
-                request.AuthRequestId, request.UserId, request.ChatId);
+            _logger.LogInformation("Sending auth request. AuthRequestId: {AuthRequestId:l}, UserId: {UserId:l}, ChatId: {ChatId:l}",
+                botRequest.AuthRequestId, botRequest.UserId, botRequest.ChatId);
 
-            var messageText = request.Message;
+            var messageText = botRequest.Message;
             var inlineKeyboard = CreateAuthButtons(
-                request.ApproveButtonText, 
-                request.ApproveButtonCallbackData,
-                request.RejectButtonText,
-                request.RejectButtonCallbackData);
+                botRequest.ApproveButtonText, 
+                botRequest.ApproveButtonCallbackData,
+                botRequest.RejectButtonText,
+                botRequest.RejectButtonCallbackData);
 
             var success = await _botXApiService.SendMessageWithInlineKeyboardAsync(
-                request.ChatId,
+                botRequest.ChatId,
                 messageText,
                 inlineKeyboard,
                 cancellationToken);
@@ -85,7 +81,7 @@ public class SendAuthRequestUseCase : ISendAuthRequestUseCase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Ошибка при отправке запроса авторизации {AuthRequestId}", request.AuthRequestId);
+            _logger.LogError(ex, "Failed to send auth request. AuthRequestId: {AuthRequestId:l}", botRequest.AuthRequestId);
 
             return new SendAuthRequestResult(
                 Success: false,

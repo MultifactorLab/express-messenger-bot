@@ -1,11 +1,9 @@
+using MF.Express.Bot.Application.UseCases;
 using MF.Express.Bot.Application.UseCases.Auth;
 using MF.Express.Bot.Api.DTOs.SendAuthRequest;
 
 namespace MF.Express.Bot.Api.Endpoints;
 
-/// <summary>
-/// Endpoint для отправки запроса авторизации с кнопками подтверждения
-/// </summary>
 public class SendAuthRequestEndpoint : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
@@ -20,7 +18,7 @@ public class SendAuthRequestEndpoint : IEndpoint
 
     private static async Task<IResult> HandleAsync(
         SendAuthRequestDto dto,
-        ISendAuthRequestUseCase useCase,
+        IUseCase<SendAuthRequestRequest, SendAuthRequestResult> useCase,
         CancellationToken ct)
     {
         var request = SendAuthRequestDto.ToRequest(dto);

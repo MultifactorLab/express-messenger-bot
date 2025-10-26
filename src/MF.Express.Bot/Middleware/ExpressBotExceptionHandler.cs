@@ -4,9 +4,6 @@ using System.Net;
 
 namespace MF.Express.Bot.Api.Middleware;
 
-/// <summary>
-/// Обработчик исключений для Express Bot API
-/// </summary>
 public class ExpressBotExceptionHandler : IExceptionHandler
 {
     private readonly ILogger<ExpressBotExceptionHandler> _logger;
@@ -21,7 +18,7 @@ public class ExpressBotExceptionHandler : IExceptionHandler
         Exception exception,
         CancellationToken cancellationToken)
     {
-        _logger.LogError(exception, "Необработанное исключение в Express Bot API");
+        _logger.LogError(exception, "Unhandled exception in Express Bot API");
 
         var problemDetails = CreateProblemDetails(httpContext, exception);
         

@@ -2,9 +2,6 @@ using System.ComponentModel.DataAnnotations;
 
 namespace MF.Express.Bot.Infrastructure.Configuration;
 
-/// <summary>
-/// Конфигурация Express Bot для Bot API v4 интеграции
-/// </summary>
 public class ExpressBotConfiguration
 {
     public const string SectionName = "ExpressBot";

@@ -1,3 +1,4 @@
+using MF.Express.Bot.Application.UseCases;
 using MF.Express.Bot.Application.UseCases.Auth;
 using MF.Express.Bot.Api.DTOs.SendAuthResult;
 
@@ -17,7 +18,7 @@ public class SendAuthResultEndpoint : IEndpoint
 
     private static async Task<IResult> HandleAsync(
         SendAuthResultDto dto,
-        ISendAuthResultUseCase useCase,
+        IUseCase<SendAuthResultRequest, SendAuthResultResult> useCase,
         CancellationToken ct)
     {
         var request = SendAuthResultDto.ToRequest(dto);
@@ -38,4 +39,5 @@ public class SendAuthResultEndpoint : IEndpoint
         };
     }
 }
+
 

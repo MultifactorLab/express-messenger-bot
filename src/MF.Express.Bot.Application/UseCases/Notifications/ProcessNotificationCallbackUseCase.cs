@@ -3,10 +3,6 @@ using Microsoft.Extensions.Logging;
 
 namespace MF.Express.Bot.Application.UseCases.Notifications;
 
-public interface IProcessNotificationCallbackUseCase : IUseCase<NotificationCallbackRequest, NotificationCallbackResult>
-{
-}
-
 public record NotificationCallbackRequest(
     string SyncId,
     string Status,
@@ -22,7 +18,7 @@ public record NotificationCallbackResult(
     string? ErrorMessage = null
 );
 
-public class ProcessNotificationCallbackUseCase : IProcessNotificationCallbackUseCase
+public class ProcessNotificationCallbackUseCase : IUseCase<NotificationCallbackRequest, NotificationCallbackResult>
 {
     private readonly ILogger<ProcessNotificationCallbackUseCase> _logger;
 
@@ -32,24 +28,24 @@ public class ProcessNotificationCallbackUseCase : IProcessNotificationCallbackUs
     }
 
     public async Task<NotificationCallbackResult> ExecuteAsync(
-        NotificationCallbackRequest request, 
+        NotificationCallbackRequest botRequest, 
         CancellationToken cancellationToken = default)
     {
         try
         {
-            _logger.LogInformation("Обработка notification callback: {Status} для {SyncId}", 
-                request.Status, request.SyncId);
+            _logger.LogInformation("Processing notification callback. Status: {Status:l}, SyncId: {SyncId:l}", 
+                botRequest.Status, botRequest.SyncId);
 
-            return request.Status.ToLowerInvariant() switch
+            return botRequest.Status.ToLowerInvariant() switch
             {
-                "ok" => await HandleSuccessCallback(request, cancellationToken),
-                "error" => await HandleErrorCallback(request, cancellationToken),
-                _ => HandleUnknownStatus(request)
+                "ok" => await HandleSuccessCallback(botRequest, cancellationToken),
+                "error" => await HandleErrorCallback(botRequest, cancellationToken),
+                _ => HandleUnknownStatus(botRequest)
             };
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Ошибка при обработке notification callback {SyncId}", request.SyncId);
+            _logger.LogError(ex, "Failed to process notification callback. SyncId: {SyncId:l}", botRequest.SyncId);
             return new NotificationCallbackResult(false, ErrorMessage: $"Внутренняя ошибка: {ex.Message}");
         }
     }
@@ -58,7 +54,7 @@ public class ProcessNotificationCallbackUseCase : IProcessNotificationCallbackUs
         NotificationCallbackRequest request, 
         CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Сообщение {SyncId} успешно обработано. Результат: {Result}", 
+        _logger.LogInformation("Message processed successfully. SyncId: {SyncId:l}, Result: {Result:l}", 
             request.SyncId, request.Result);
 
         await Task.CompletedTask;
@@ -70,10 +66,10 @@ public class ProcessNotificationCallbackUseCase : IProcessNotificationCallbackUs
         NotificationCallbackRequest request, 
         CancellationToken cancellationToken)
     {
-        _logger.LogWarning("Ошибка при обработке сообщения {SyncId}. Причина: {Reason}, Ошибки: {Errors}, Данные: {ErrorData}", 
+        _logger.LogWarning("Message processing failed. SyncId: {SyncId:l}, Reason: {Reason:l}, Errors: {Errors:l}, ErrorData: {ErrorData:l}", 
             request.SyncId, 
             request.Reason, 
-            request.Errors != null ? string.Join(", ", request.Errors) : "нет", 
+            request.Errors != null ? string.Join(", ", request.Errors) : "none", 
             request.ErrorData);
 
         await Task.CompletedTask;
@@ -83,7 +79,7 @@ public class ProcessNotificationCallbackUseCase : IProcessNotificationCallbackUs
 
     private NotificationCallbackResult HandleUnknownStatus(NotificationCallbackRequest request)
     {
-        _logger.LogWarning("Неизвестный статус notification callback: {Status} для {SyncId}", 
+        _logger.LogWarning("Unknown notification callback status. Status: {Status:l}, SyncId: {SyncId:l}", 
             request.Status, request.SyncId);
         
         return new NotificationCallbackResult(true);

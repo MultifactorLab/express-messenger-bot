@@ -1,3 +1,4 @@
+using MF.Express.Bot.Application.UseCases;
 using MF.Express.Bot.Application.UseCases.Auth;
 using MF.Express.Bot.Application.UseCases.BotCommands;
 using MF.Express.Bot.Application.UseCases.Notifications;
@@ -15,25 +16,12 @@ public static class ServiceCollectionExtensions
 
     private static IServiceCollection AddUseCases(this IServiceCollection services)
     {
-        // Main router
-        services.AddScoped<IProcessBotCommandUseCase, ProcessBotCommandUseCase>();
+        services.AddScoped<IUseCase<BotCommandRequest, BotCommandResult>, ProcessBotCommandUseCase>();
         
-        // Command routers
-        services.AddScoped<IProcessUserCommandUseCase, ProcessUserCommandUseCase>();
-        services.AddScoped<IProcessSystemCommandUseCase, ProcessSystemCommandUseCase>();
+        services.AddScoped<IUseCase<SendAuthRequestRequest, SendAuthRequestResult>, SendAuthRequestUseCase>();
+        services.AddScoped<IUseCase<SendAuthResultRequest, SendAuthResultResult>, SendAuthResultUseCase>();
         
-        // Specific handlers
-        services.AddScoped<IHandleStartCommandUseCase, HandleStartCommandUseCase>();
-        services.AddScoped<IHandleAuthCallbackUseCase, HandleAuthCallbackUseCase>();
-        services.AddScoped<IHandleChatCreatedUseCase, HandleChatCreatedUseCase>();
-        services.AddScoped<IProcessIncomingMessageUseCase, ProcessIncomingMessageUseCase>();
-        
-        // Auth
-        services.AddScoped<ISendAuthRequestUseCase, SendAuthRequestUseCase>();
-        services.AddScoped<ISendAuthResultUseCase, SendAuthResultUseCase>();
-        
-        // Notifications
-        services.AddScoped<IProcessNotificationCallbackUseCase, ProcessNotificationCallbackUseCase>();
+        services.AddScoped<IUseCase<NotificationCallbackRequest, NotificationCallbackResult>, ProcessNotificationCallbackUseCase>();
         
         return services;
     }

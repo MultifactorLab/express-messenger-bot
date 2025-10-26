@@ -11,7 +11,6 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddInfrastructure(this IServiceCollection services)
     {
-        services.AddMultifactorApiService();
         services.AddMfExpressApiService();
         services.AddBotXApiService();
         services.AddApplicationServices();
@@ -20,7 +19,6 @@ public static class ServiceCollectionExtensions
     
     public static IServiceCollection AddApplicationServices(this IServiceCollection services)
     {
-        services.AddScoped<IMessageProcessingService, MessageProcessingService>();
         services.AddScoped<IAuthProcessingService, AuthProcessingService>();
         return services;
     }
@@ -35,21 +33,6 @@ public static class ServiceCollectionExtensions
         });
 
         services.AddScoped<IBotXApiService, BotXApiService>();
-        return services;
-    }
-    
-    public static IServiceCollection AddMultifactorApiService(this IServiceCollection services)
-    {
-        services.AddHttpClient("MultifactorApi", (serviceProvider, client) =>
-        {
-            var config = serviceProvider.GetRequiredService<IOptions<MultifactorApiConfiguration>>().Value;
-            client.BaseAddress = new Uri(config.BaseUrl);
-            client.DefaultRequestHeaders.Add("X-API-Key", config.ApiKey);
-            client.Timeout = TimeSpan.FromSeconds(config.TimeoutSeconds);
-        });
-
-        services.AddScoped<IMultifactorApiService, MultifactorApiService>();
-
         return services;
     }
 

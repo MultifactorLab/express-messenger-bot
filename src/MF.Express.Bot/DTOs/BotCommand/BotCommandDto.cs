@@ -18,7 +18,6 @@ public record BotCommandDto(
             CommandType: dto.Command.CommandType,
             CommandBody: dto.Command.Body,
             CommandData: dto.Command.Data,
-            CommandMetadata: dto.Command.Metadata,
             UserHuid: dto.From.UserHuid,
             GroupChatId: dto.From.GroupChatId,
             ChatType: dto.From.ChatType,

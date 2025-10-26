@@ -3,10 +3,6 @@ using Microsoft.Extensions.Logging;
 
 namespace MF.Express.Bot.Application.UseCases.Auth;
 
-public interface ISendAuthResultUseCase : IUseCase<SendAuthResultRequest, SendAuthResultResult>
-{
-}
-
 public record SendAuthResultRequest(
     string ChatId,
     string Message,
@@ -20,7 +16,7 @@ public record SendAuthResultResult(
     SendAuthErrorType? ErrorType = null
 );
 
-public class SendAuthResultUseCase : ISendAuthResultUseCase
+public class SendAuthResultUseCase : IUseCase<SendAuthResultRequest, SendAuthResultResult>
 {
     private readonly IBotXApiService _botXApiService;
     private readonly ILogger<SendAuthResultUseCase> _logger;
@@ -34,16 +30,16 @@ public class SendAuthResultUseCase : ISendAuthResultUseCase
     }
 
     public async Task<SendAuthResultResult> ExecuteAsync(
-        SendAuthResultRequest request, 
+        SendAuthResultRequest botRequest, 
         CancellationToken cancellationToken = default)
     {
         try
         {
-            _logger.LogInformation("Отправка результата авторизации в чат {ChatId}", request.ChatId);
+            _logger.LogInformation("Sending auth result. ChatId: {ChatId:l}", botRequest.ChatId);
 
             var success = await _botXApiService.SendTextMessageAsync(
-                request.ChatId,
-                request.Message,
+                botRequest.ChatId,
+                botRequest.Message,
                 cancellationToken);
 
             if (success)
@@ -63,7 +59,7 @@ public class SendAuthResultUseCase : ISendAuthResultUseCase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Ошибка при отправке результата авторизации");
+            _logger.LogError(ex, "Failed to send auth result");
 
             return new SendAuthResultResult(
                 Success: false,
@@ -73,4 +69,5 @@ public class SendAuthResultUseCase : ISendAuthResultUseCase
         }
     }
 }
+
 

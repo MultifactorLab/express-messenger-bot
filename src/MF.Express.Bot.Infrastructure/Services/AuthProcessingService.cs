@@ -1,5 +1,4 @@
 using Microsoft.Extensions.Logging;
-using MF.Express.Bot.Application.Models.BotCommand;
 using MF.Express.Bot.Application.Models.Common;
 using MF.Express.Bot.Application.Interfaces;
 using MF.Express.Bot.Application.Services;
@@ -26,7 +25,7 @@ public class AuthProcessingService : IAuthProcessingService
     {
         try
         {
-            _logger.LogInformation("Проксирование callback авторизации в MF Express API");
+            _logger.LogInformation("Proxying auth callback to MF Express API");
 
             var success = await _mfExpressApiService.SendAuthCallbackAsync(
                 callbackData,
@@ -35,16 +34,16 @@ public class AuthProcessingService : IAuthProcessingService
 
             if (!success)
             {
-                _logger.LogWarning("Не удалось отправить callback в MF Express API");
+                _logger.LogWarning("Failed to send callback to MF Express API");
                 return new CommandProcessedResponse(false, "Ошибка при отправке callback в MF Express API");
             }
 
-            _logger.LogInformation("Callback успешно отправлен в MF Express API");
+            _logger.LogInformation("Callback sent successfully to MF Express API");
             return new CommandProcessedResponse(true);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Ошибка при проксировании callback авторизации");
+            _logger.LogError(ex, "Exception proxying auth callback");
             
             return new CommandProcessedResponse(false, $"Внутренняя ошибка: {ex.Message}");
         }

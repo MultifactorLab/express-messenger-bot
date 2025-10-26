@@ -1,3 +1,5 @@
+using MF.Express.Bot.Application.UseCases.BotCommands;
+
 namespace MF.Express.Bot.Application.Interfaces;
 
 public interface IMfExpressApiService
@@ -8,13 +10,8 @@ public interface IMfExpressApiService
         CancellationToken cancellationToken = default);
     
     Task<bool> SendChatCreatedCallbackAsync(
-        string chatId,
-        string expressUserId,
-        string botId,
-        string requestId,
-        string username,
-        string device,
-        string locale,
+        BotCommandRequest botRequest,
+        string authRequestId,
         CancellationToken cancellationToken = default);
 }
 

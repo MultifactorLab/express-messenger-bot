@@ -7,10 +7,6 @@ using Microsoft.Extensions.Options;
 
 namespace MF.Express.Bot.Api.Middleware;
 
-/// <summary>
-/// Middleware для валидации JWT токенов от BotX
-/// Согласно документации https://docs.express.ms/chatbots/developer-guide/api/bot-api/
-/// </summary>
 public class BotXJwtValidationMiddleware
 {
     private readonly RequestDelegate _next;
@@ -40,7 +36,7 @@ public class BotXJwtValidationMiddleware
             var token = ExtractToken(context);
             if (string.IsNullOrEmpty(token))
             {
-                _logger.LogWarning("Отсутствует Authorization header в запросе к {Path}", context.Request.Path);
+                _logger.LogWarning("Missing Authorization header. Path: {Path:l}", context.Request.Path);
                 await WriteUnauthorizedResponse(context, "Missing authorization header");
                 return;
             }
@@ -48,19 +44,19 @@ public class BotXJwtValidationMiddleware
             var claimsPrincipal = ValidateJwtToken(token);
             if (claimsPrincipal == null)
             {
-                _logger.LogWarning("Недействительный JWT токен в запросе к {Path}", context.Request.Path);
+                _logger.LogWarning("Invalid JWT token. Path: {Path:l}", context.Request.Path);
                 await WriteUnauthorizedResponse(context, "Invalid JWT token");
                 return;
             }
 
             context.User = claimsPrincipal;
 
-            _logger.LogDebug("JWT токен успешно валидирован для запроса к {Path}", context.Request.Path);
+            _logger.LogDebug("JWT token validated successfully. Path: {Path:l}", context.Request.Path);
             await _next(context);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Ошибка при валидации JWT токена для {Path}", context.Request.Path);
+            _logger.LogError(ex, "JWT validation error. Path: {Path:l}", context.Request.Path);
             await WriteUnauthorizedResponse(context, "JWT validation failed");
         }
     }
@@ -121,7 +117,7 @@ public class BotXJwtValidationMiddleware
         }
         catch (Exception ex)
         {
-            _logger.LogDebug(ex, "Ошибка валидации JWT токена");
+            _logger.LogDebug(ex, "JWT token validation error");
             return null;
         }
     }
