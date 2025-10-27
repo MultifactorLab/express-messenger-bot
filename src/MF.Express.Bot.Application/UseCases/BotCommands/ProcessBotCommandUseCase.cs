@@ -4,19 +4,16 @@ using Microsoft.Extensions.Logging;
 
 namespace MF.Express.Bot.Application.UseCases.BotCommands;
 public record BotCommandRequest(
-    string SyncId,
-    string CommandType,
-    string CommandBody,
+    string? SyncId,
+    string? CommandType,
+    string? CommandBody,
     Dictionary<string, object>? CommandData,
     string? UserHuid,
     string? GroupChatId,
-    string? ChatType,
     string? Username,
     string? Device,
     string? Locale,
-    string Host,
-    string BotId,
-    int ProtoVersion
+    string? BotId
 );
 
 public record BotCommandResult(
@@ -81,8 +78,7 @@ public class ProcessBotCommandUseCase : IUseCase<BotCommandRequest, BotCommandRe
                 
                 if (string.IsNullOrEmpty(requestId))
                 {
-                    _logger.LogWarning("/start command without requestId. CommandBody: {CommandBody:l}", 
-                        botRequest.CommandBody);
+                    _logger.LogWarning("/start command without requestId");
                     return new BotCommandResult(false, "Request ID is required for chat registration");
                 }
                 

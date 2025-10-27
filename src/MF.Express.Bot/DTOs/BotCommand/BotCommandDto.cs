@@ -7,8 +7,7 @@ public record BotCommandDto(
     [property: JsonPropertyName("sync_id")] string SyncId,
     [property: JsonPropertyName("command")] BotCommandBodyDto Command,
     [property: JsonPropertyName("from")] BotCommandFromDto From,
-    [property: JsonPropertyName("bot_id")] string BotId,
-    [property: JsonPropertyName("proto_version")] int ProtoVersion
+    [property: JsonPropertyName("bot_id")] string BotId
 )
 {
     public static BotCommandRequest ToRequest(BotCommandDto dto)
@@ -20,13 +19,10 @@ public record BotCommandDto(
             CommandData: dto.Command.Data,
             UserHuid: dto.From.UserHuid,
             GroupChatId: dto.From.GroupChatId,
-            ChatType: dto.From.ChatType,
             Username: dto.From.Username,
             Device: dto.From.Device,
             Locale: dto.From.Locale,
-            Host: dto.From.Host,
-            BotId: dto.BotId,
-            ProtoVersion: dto.ProtoVersion
+            BotId: dto.BotId
         );
     }
 }

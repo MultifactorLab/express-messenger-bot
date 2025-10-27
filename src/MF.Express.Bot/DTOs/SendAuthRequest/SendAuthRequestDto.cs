@@ -8,10 +8,10 @@ public record SendAuthRequestDto(
     [property: JsonPropertyName("user_id")] string UserId,
     [property: JsonPropertyName("auth_request_id")] string AuthRequestId,
     [property: JsonPropertyName("message")] string Message,
-    [property: JsonPropertyName("approve_button_text")] string ApproveButtonText = null,
-    [property: JsonPropertyName("reject_button_text")] string RejectButtonText = null,
-    [property: JsonPropertyName("approve_button_callback_data")] string ApproveButtonCallbackData = null,
-    [property: JsonPropertyName("reject_button_callback_data")] string RejectButtonCallbackData = null
+    [property: JsonPropertyName("approve_button_text")] string ApproveButtonText,
+    [property: JsonPropertyName("reject_button_text")] string RejectButtonText,
+    [property: JsonPropertyName("approve_button_callback_data")] string ApproveButtonCallbackData,
+    [property: JsonPropertyName("reject_button_callback_data")] string RejectButtonCallbackData
 )
 {
     public static SendAuthRequestRequest ToRequest(SendAuthRequestDto dto)

@@ -4,16 +4,16 @@ using Microsoft.Extensions.Options;
 
 namespace MF.Express.Bot.Api.HealthCheck;
 
-internal sealed class MultifactorApiHealthCheck : IHealthCheck
+internal sealed class MfExpressApiHealthCheck : IHealthCheck
 {
     private readonly IHttpClientFactory _httpClientFactory;
-    private readonly IOptions<MultifactorApiConfiguration> _config;
-    private readonly ILogger<MultifactorApiHealthCheck> _logger;
+    private readonly IOptions<MfExpressApiConfiguration> _config;
+    private readonly ILogger<MfExpressApiHealthCheck> _logger;
 
-    public MultifactorApiHealthCheck(
+    public MfExpressApiHealthCheck(
         IHttpClientFactory httpClientFactory,
-        IOptions<MultifactorApiConfiguration> config,
-        ILogger<MultifactorApiHealthCheck> logger)
+        IOptions<MfExpressApiConfiguration> config,
+        ILogger<MfExpressApiHealthCheck> logger)
     {
         _httpClientFactory = httpClientFactory;
         _config = config;
@@ -26,7 +26,7 @@ internal sealed class MultifactorApiHealthCheck : IHealthCheck
     {
         try
         {
-            var client = _httpClientFactory.CreateClient("MultifactorApi");
+            var client = _httpClientFactory.CreateClient("MfExpressApi");
             
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             cts.CancelAfter(TimeSpan.FromSeconds(5));
@@ -37,11 +37,11 @@ internal sealed class MultifactorApiHealthCheck : IHealthCheck
 
             if ((int)response.StatusCode < 500)
             {
-                return HealthCheckResult.Healthy($"Multifactor API is reachable (Status: {response.StatusCode})");
+                return HealthCheckResult.Healthy($"MfExpress API is reachable (Status: {response.StatusCode})");
             }
             
-            _logger.LogWarning("Multifactor API returned server error: {StatusCode}", response.StatusCode);
-            return HealthCheckResult.Unhealthy($"Multifactor API returned server error: {response.StatusCode}");
+            _logger.LogWarning("MfExpress API returned server error: {StatusCode}", response.StatusCode);
+            return HealthCheckResult.Unhealthy($"MfExpress API returned server error: {response.StatusCode}");
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -49,18 +49,18 @@ internal sealed class MultifactorApiHealthCheck : IHealthCheck
         }
         catch (OperationCanceledException)
         {
-            _logger.LogWarning("Multifactor API health check timeout");
-            return HealthCheckResult.Unhealthy("Multifactor API timeout");
+            _logger.LogWarning("MfExpress API health check timeout");
+            return HealthCheckResult.Unhealthy("MfExpress API timeout");
         }
         catch (HttpRequestException ex)
         {
-            _logger.LogError(ex, "Multifactor API health check failed - connection error");
-            return HealthCheckResult.Unhealthy("Multifactor API is not accessible", ex);
+            _logger.LogError(ex, "MfExpress API health check failed - connection error");
+            return HealthCheckResult.Unhealthy("MfExpress API is not accessible", ex);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Multifactor API health check failed unexpectedly");
-            return HealthCheckResult.Unhealthy("Multifactor API health check failed", ex);
+            _logger.LogError(ex, "MfExpress API health check failed unexpectedly");
+            return HealthCheckResult.Unhealthy("MfExpress API health check failed", ex);
         }
     }
 }

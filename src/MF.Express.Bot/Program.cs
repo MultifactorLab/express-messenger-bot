@@ -45,7 +45,7 @@ builder.Services.AddProblemDetails();
 // Health Checks
 builder.AddSelfHealthCheck();
 builder.AddBotXApiHealthCheck();
-builder.AddMultifactorApiHealthCheck();
+builder.AddMfExpressApiHealthCheck();
 
 var app = builder.Build();
 

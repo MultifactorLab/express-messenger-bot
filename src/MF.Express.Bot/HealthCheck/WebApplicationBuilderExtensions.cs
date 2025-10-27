@@ -36,18 +36,18 @@ public static class WebApplicationBuilderExtensions
         builder.Services.AddHealthChecks().Add(registration);
     }
     
-    public static void AddMultifactorApiHealthCheck(this WebApplicationBuilder builder)
+    public static void AddMfExpressApiHealthCheck(this WebApplicationBuilder builder)
     {
         if (builder.Environment.EnvironmentName == "test")
         {
             return;
         }
         
-        builder.Services.AddTransient<MultifactorApiHealthCheck>();
+        builder.Services.AddTransient<MfExpressApiHealthCheck>();
         
         var registration = new HealthCheckRegistration(
             name: ApplicationHealthChecks.MultifactorApi, 
-            factory: prov => prov.GetRequiredService<MultifactorApiHealthCheck>(), 
+            factory: prov => prov.GetRequiredService<MfExpressApiHealthCheck>(), 
             failureStatus: HealthStatus.Unhealthy, 
             tags: ["ready", "startup"],
             timeout: TimeSpan.FromSeconds(5));
