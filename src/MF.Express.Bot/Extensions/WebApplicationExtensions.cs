@@ -14,6 +14,7 @@ public static class WebApplicationExtensions
         apiGroup.RegisterEndpoint<NotificationCallbackEndpoint>();
         apiGroup.RegisterEndpoint<SendAuthRequestEndpoint>();
         apiGroup.RegisterEndpoint<SendAuthResultEndpoint>();
+        apiGroup.RegisterEndpoint<SendGreetingEndpoint>();
 
         return app;
     }
