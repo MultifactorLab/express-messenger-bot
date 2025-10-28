@@ -15,6 +15,7 @@ public static class WebApplicationExtensions
         apiGroup.RegisterEndpoint<SendAuthRequestEndpoint>();
         apiGroup.RegisterEndpoint<SendAuthResultEndpoint>();
         apiGroup.RegisterEndpoint<SendGreetingEndpoint>();
+        apiGroup.RegisterEndpoint<VerifyBotEndpoint>();
 
         return app;
     }
