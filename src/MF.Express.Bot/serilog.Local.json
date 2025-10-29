@@ -1,19 +1,19 @@
 {
   "Serilog": {
     "MinimumLevel": {
-      "Default": "Warning",
+      "Default": "Debug",
       "Override": {
-        "Microsoft": "Warning",
+        "Microsoft": "Information",
         "Microsoft.AspNetCore": "Warning",
-        "System": "Warning"
+        "System": "Information"
       }
     },
     "WriteTo": [
       {
         "Name": "Console",
         "Args": {
-          "restrictedToMinimumLevel": "Warning",
-          "outputTemplate": "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}"
+          "theme": "Serilog.Sinks.SystemConsole.Themes.AnsiConsoleTheme::Code, Serilog.Sinks.Console",
+          "outputTemplate": "[{Timestamp:HH:mm:ss} {Level:u3}] {SourceContext}{NewLine}    {Message:lj}{NewLine}{Exception}"
         }
       },
       {
@@ -25,14 +25,13 @@
               "Args": {
                 "path": "Logs/express-bot-.log",
                 "rollingInterval": "Day",
-                "retainedFileCountLimit": 14,
-                "restrictedToMinimumLevel": "Warning",
-                "outputTemplate": "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}",
+                "retainedFileCountLimit": 3,
+                "outputTemplate": "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {SourceContext}{NewLine}    {Message:lj}{NewLine}{Exception}",
                 "buffered": true
               }
             }
           ],
-          "bufferSize": 1000
+          "bufferSize": 500
         }
       }
     ],
@@ -41,3 +40,6 @@
     ]
   }
 }
+
+
+

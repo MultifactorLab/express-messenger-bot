@@ -42,7 +42,7 @@ public static class ServiceCollectionExtensions
         {
             var config = serviceProvider.GetRequiredService<IOptions<MfExpressApiConfiguration>>().Value;
             client.BaseAddress = new Uri(config.BaseUrl);
-            client.Timeout = TimeSpan.FromSeconds(config.TimeoutSeconds);
+            client.Timeout = TimeSpan.FromSeconds(config.RequestTimeoutSeconds);
         });
 
         services.AddScoped<IMfExpressApiService, MfExpressApiService>();

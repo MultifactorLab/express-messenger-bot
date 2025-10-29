@@ -4,9 +4,10 @@ namespace MF.Express.Bot.Infrastructure.Configuration;
 
 public class MfExpressApiConfiguration
 {
-    [Required] public string BaseUrl { get; set; } = "https://mf-express-service.ru.tuna.am/";
+    public const string SectionName = "MfExpressApi";
+    [Required] public string BaseUrl { get; set; } = string.Empty;
     
-    public int TimeoutSeconds { get; set; } = 30;
+    public int RequestTimeoutSeconds { get; set; } = 30;
     
     public string ChatCreatedEndpoint { get; set; } = "/api/express/webhook/chat-created";
     

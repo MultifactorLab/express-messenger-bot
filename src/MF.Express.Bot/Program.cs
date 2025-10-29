@@ -32,8 +32,8 @@ builder.Services.AddOptions<ExpressBotConfiguration>()
     .ValidateDataAnnotations()
     .ValidateOnStart();
 
-builder.Services.AddOptions<MultifactorApiConfiguration>()
-    .BindConfiguration(MultifactorApiConfiguration.SectionName)
+builder.Services.AddOptions<MfExpressApiConfiguration>()
+    .BindConfiguration(MfExpressApiConfiguration.SectionName)
     .ValidateDataAnnotations()
     .ValidateOnStart();
 
