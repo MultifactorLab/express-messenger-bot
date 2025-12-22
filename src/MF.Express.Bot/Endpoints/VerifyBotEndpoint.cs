@@ -54,7 +54,6 @@ public class VerifyBotEndpoint : IEndpoint
                     request.BotId, expectedBotId);
                 
                 var response = new VerifyBotResponseDto(
-                    Status: "failed",
                     BotId: request.BotId,
                     Verified: false
                 );
@@ -69,7 +68,6 @@ public class VerifyBotEndpoint : IEndpoint
                 logger.LogWarning("Bot verification failed. Signature mismatch. BotId: {BotId:l}", request.BotId);
                 
                 var response = new VerifyBotResponseDto(
-                    Status: "failed",
                     BotId: request.BotId,
                     Verified: false
                 );
@@ -80,7 +78,6 @@ public class VerifyBotEndpoint : IEndpoint
             logger.LogInformation("Bot verification successful. BotId: {BotId:l}", request.BotId);
 
             var successResponse = new VerifyBotResponseDto(
-                Status: "ok",
                 BotId: request.BotId,
                 Verified: true
             );

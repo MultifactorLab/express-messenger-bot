@@ -36,82 +36,74 @@ public class MfExpressApiService : IMfExpressApiService
         string chatId,
         CancellationToken cancellationToken = default)
     {
-        try
+        _logger.LogInformation("Sending auth callback to MF Express API. ChatId: {ChatId:l}", chatId);
+
+        var payload = new
         {
-            _logger.LogInformation("Sending auth callback to MF Express API. ChatId: {ChatId:l}", chatId);
+            CallbackData = callbackData,
+            ChatId = chatId
+        };
 
-            var httpClient = _httpClientFactory.CreateClient("MfExpressApi");
-
-            var payload = new
-            {
-                CallbackData = callbackData,
-                ChatId = chatId
-            };
-
-            var json = JsonSerializer.Serialize(payload, _jsonOptions);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-            var response = await httpClient.PostAsync(_configuration.AuthCallbackEndpoint, content, cancellationToken);
-
-            if (response.IsSuccessStatusCode)
-            {
-                _logger.LogInformation("Auth callback sent successfully to MF Express API");
-                return true;
-            }
-
-            var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
-            _logger.LogWarning("Failed to send auth callback to MF Express API. Status: {Status:l}, Content: {Content:l}",
-                response.StatusCode, responseContent);
-
-            return false;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Exception sending auth callback to MF Express API");
-            return false;
-        }
+        return await SendPostRequestAsync(
+            _configuration.AuthCallbackEndpoint,
+            payload,
+            "Auth callback",
+            cancellationToken);
     }
 
     public async Task<bool> SendChatCreatedCallbackAsync(BotCommandRequest botRequest, string authRequestId, CancellationToken cancellationToken = default)
     {
+        _logger.LogInformation("Sending /start command to MF Express API. ChatId: {ChatId:l}, ExpressUserId: {ExpressUserId:l}, RequestId: {RequestId:l}",
+            botRequest.GroupChatId, botRequest.UserHuid, authRequestId);
+
+        var payload = new
+        {
+            BotId = botRequest.BotId,
+            ChatId = botRequest.GroupChatId,
+            RequestId = authRequestId,
+            ExpressUserId = botRequest.UserHuid,
+            Username = botRequest.Username,
+            Device = botRequest.Device,
+            LanguageCode = botRequest.Locale
+        };
+
+        return await SendPostRequestAsync(
+            _configuration.ChatCreatedEndpoint,
+            payload,
+            "/start command",
+            cancellationToken);
+    }
+
+    private async Task<bool> SendPostRequestAsync(
+        string endpoint,
+        object payload,
+        string operationName,
+        CancellationToken cancellationToken)
+    {
         try
         {
-            _logger.LogInformation("Sending /start command to MF Express API. ChatId: {ChatId:l}, ExpressUserId: {ExpressUserId:l}, RequestId: {RequestId:l}",
-                botRequest.GroupChatId, botRequest.UserHuid, authRequestId);
-
             var httpClient = _httpClientFactory.CreateClient("MfExpressApi");
-
-            var payload = new
-            {
-                BotId = botRequest.BotId,
-                ChatId = botRequest.GroupChatId,
-                RequestId = authRequestId,
-                ExpressUserId = botRequest.UserHuid,
-                Username = botRequest.Username,
-                Device = botRequest.Device,
-                LanguageCode = botRequest.Locale
-            };
 
             var json = JsonSerializer.Serialize(payload, _jsonOptions);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            var response = await httpClient.PostAsync(_configuration.ChatCreatedEndpoint, content, cancellationToken);
+            var response = await httpClient.PostAsync(endpoint, content, cancellationToken);
 
             if (response.IsSuccessStatusCode)
             {
-                _logger.LogInformation("/start command sent successfully to MF Express API. ChatId: {ChatId:l}", botRequest.GroupChatId);
+                _logger.LogInformation("{Operation} sent successfully to MF Express API", operationName);
                 return true;
             }
 
             var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
-            _logger.LogWarning("Failed to send /start command to MF Express API. Status: {Status:l}, Content: {Content:l}",
-                response.StatusCode, responseContent);
+            _logger.LogWarning("Failed to send {Operation} to MF Express API. Status: {Status:l}, Response: {Response:l}",
+                operationName, response.StatusCode, responseContent);
 
             return false;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Exception sending /start command to MF Express API");
+            _logger.LogError(ex, "Exception sending {Operation} to MF Express API", operationName);
             return false;
         }
     }
