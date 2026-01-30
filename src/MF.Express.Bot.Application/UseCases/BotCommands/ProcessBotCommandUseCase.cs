@@ -157,7 +157,7 @@ public class ProcessBotCommandUseCase : IUseCase<BotCommandRequest, BotCommandRe
             var commandValue = commandObj?.ToString();
             if (!string.IsNullOrEmpty(commandValue))
             {
-                var match = System.Text.RegularExpressions.Regex.Match(commandValue, @"/req=([^\s]+)");
+                var match = System.Text.RegularExpressions.Regex.Match(commandValue, @"req=([^\s]+)");
                 if (match is { Success: true, Groups.Count: > 1 })
                 {
                     return match.Groups[1].Value;
