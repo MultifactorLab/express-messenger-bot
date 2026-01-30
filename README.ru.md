@@ -1,4 +1,4 @@
-[![License](https://img.shields.io/badge/license-view-orange)](https://github.com/MultifactorLab/mf-express-bot/blob/main/LICENSE.md)
+[![License](https://img.shields.io/badge/license-view-orange)](https://github.com/MultifactorLab/express-messenger-bot/blob/main/LICENSE.md)
 
 # MF.Express.Bot
 
@@ -8,8 +8,8 @@ _Also available in other languages: [English](README.md)_
 
 Компонент является частью гибридного 2FA решения сервиса <a href="https://multifactor.ru/" target="_blank">МультiFactor</a>.
 
-* <a href="https://github.com/MultifactorLab/mf-express-bot" target="_blank">Исходный код</a>
-* <a href="https://github.com/MultifactorLab/mf-express-bot/releases" target="_blank">Сборки</a>
+* <a href="https://github.com/MultifactorLab/express-messenger-bot" target="_blank">Исходный код</a>
+* <a href="https://github.com/MultifactorLab/express-messenger-bot/releases" target="_blank">Сборки</a>
 
 Подробная документация доступна по адресу <https://multifactor.ru/docs/enroll/#express> с инструкциями по интеграции 2FA через Express Messenger.
 
@@ -76,8 +76,8 @@ MF.Express.Bot выступает в роли прокси между вашим
 
 ```bash
 # Клонирование репозитория
-git clone https://github.com/MultifactorLab/mf-express-bot.git
-cd mf-express-bot
+git clone https://github.com/MultifactorLab/express-messenger-bot.git
+cd express-messenger-bot
 
 # Переключение на стабильную версию (рекомендуется для production)
 git checkout tags/v1.0.0
@@ -166,8 +166,8 @@ docker run -d \
 
 * **Документация:** <https://multifactor.ru/docs/enroll/#express>
 * **Поддержка:** support@multifactor.ru
-* **GitHub:** <https://github.com/MultifactorLab/mf-express-bot>
+* **GitHub:** <https://github.com/MultifactorLab/express-messenger-bot>
 
 ## Лицензия
 
-Обратите внимание на <a href="https://github.com/MultifactorLab/mf-express-bot/blob/main/LICENSE.ru.md" target="_blank">лицензию</a>. Она не дает вам право вносить изменения в исходный код Компонента и создавать производные продукты на его основе. Исходный код предоставляется в ознакомительных целях.
+Обратите внимание на <a href="https://github.com/MultifactorLab/express-messenger-bot/blob/main/LICENSE.ru.md" target="_blank">лицензию</a>. Она не дает вам право вносить изменения в исходный код Компонента и создавать производные продукты на его основе. Исходный код предоставляется в ознакомительных целях.

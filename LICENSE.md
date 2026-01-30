@@ -12,7 +12,7 @@ IMPORTANT: By installing, running, copying, or otherwise using the Component, yo
 
 1.1. Component is the "MF.Express.Bot" computer program (as a whole, as well as its components and functions).
 
-1.2 MULTIFACTOR LLC (hereinafter the "Licensor") offers to use the "MF.Express.Bot" component (hereinafter the "Component") available at https://github.com/MultifactorLab/mf-express-bot according to the rules and within the terms of this License Agreement (hereinafter the "License").
+1.2 MULTIFACTOR LLC (hereinafter the "Licensor") offers to use the "MF.Express.Bot" component (hereinafter the "Component") available at https://github.com/MultifactorLab/express-messenger-bot according to the rules and within the terms of this License Agreement (hereinafter the "License").
 
 1.3. The Component is a computer program - the "MF.Express.Bot" component, which allows you to implement the following programming interfaces: receiving webhook requests from BotX Platform; processing user authentication commands; calling multifactor authentication functions via MultiFactor Express API.
 
@@ -50,7 +50,7 @@ IMPORTANT: By installing, running, copying, or otherwise using the Component, yo
 
 ### 6. Changes in the Terms of the License
 
-6.1. The terms and conditions of this License may be changed unilaterally by the Licensor without prior Update Notice to the User. The current version of the License is available at https://github.com/MultifactorLab/mf-express-bot/blob/main/LICENSE.md at all times.
+6.1. The terms and conditions of this License may be changed unilaterally by the Licensor without prior Update Notice to the User. The current version of the License is available at https://github.com/MultifactorLab/express-messenger-bot/blob/main/LICENSE.md at all times.
 The aforementioned changes to the Licence shall come into force on the date of their publication at the specified Web-address unless otherwise stipulated in the relevant publication.
 
 6.2. Any questions or complaints regarding the use/failure to use the Component, or regarding possible violation of the law and/or third party rights by the Component, shall be sent to support@multifactor.pro.
