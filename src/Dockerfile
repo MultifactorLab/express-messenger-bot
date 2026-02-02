@@ -28,7 +28,6 @@ COPY --from=build /app/publish .
 
 RUN mkdir -p Logs
 
-#
 # ====================================
 # Environment Variables Configuration
 # ====================================
@@ -70,7 +69,6 @@ RUN mkdir -p Logs
 # For Kubernetes, use ConfigMap/Secret
 # For direct docker run, use -e flags
 # ====================================
-#
 
 ENV ASPNETCORE_URLS=http://+:8080 \
     ASPNETCORE_ENVIRONMENT=Production \
