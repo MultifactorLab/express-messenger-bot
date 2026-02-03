@@ -1,0 +1,67 @@
+using MF.Express.Bot.Api.DTOs.BotStatus;
+using MF.Express.Bot.Api.DTOs.Common;
+using MF.Express.Bot.Application.Models.BotX;
+using Microsoft.Extensions.Options;
+using MF.Express.Bot.Infrastructure.Configuration;
+
+namespace MF.Express.Bot.Api.Endpoints;
+
+public class BotStatusEndpoint : IEndpoint
+{
+    public void MapEndpoint(IEndpointRouteBuilder app)
+    {
+        app.MapGet("/status", HandleAsync)
+            .WithName("GetBotStatus")
+            .Produces<BotStatusResponseDto>(200)
+            .Produces<BotApiErrorResponseDto>(503);
+    }
+
+    private static async Task<IResult> HandleAsync(
+        IOptions<ExpressBotConfiguration> config,
+        ILogger<BotStatusEndpoint> logger,
+        CancellationToken ct)
+    {
+        try
+        {
+            logger.LogDebug("Bot status requested. BotId: {BotId:l}", config.Value.BotId);
+
+            var commands = new List<BotCommandInfoModel>
+            {
+                new BotCommandInfoModel(
+                    Name: "/start",
+                    Body: "/start",
+                    Description: "Начать работу с ботом"
+                )
+            };
+
+            var statusModel = new BotStatusModel(
+                Status: "ok",
+                Result: new BotStatusResultModel(
+                    Enabled: true,
+                    StatusMessage: string.Empty,
+                    Commands: commands
+                )
+            );
+            
+            logger.LogInformation("Bot status returned successfully. CommandCount: {CommandCount:l}", commands.Count);
+            var responseDto = BotStatusResponseDto.FromAppModel(statusModel);
+            return Results.Ok(responseDto);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to get bot status");
+
+            var errorResponse = new BotApiErrorResponseDto(
+                Reason: "internal_error",
+                ErrorData: new Dictionary<string, object> 
+                { 
+                    { "message", "Внутренняя ошибка сервера" },
+                    { "timestamp", DateTime.UtcNow.ToString("O") }
+                },
+                Errors: new List<object> { ex.Message }
+            );
+
+            return Results.Json(errorResponse, statusCode: 503);
+        }
+    }
+}
