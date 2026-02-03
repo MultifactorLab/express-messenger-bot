@@ -3,8 +3,7 @@ name: Build, Push and Create Release
 on:
   push:
     tags:
-      - 'v*.*.*'
-      - '*.*.*'
+      - '*'
 
 env:
   REGISTRY: ghcr.io
@@ -21,7 +20,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-tags: true
+          fetch-depth: 0
 
       - name: Get tag message
         id: tag_message
