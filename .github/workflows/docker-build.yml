@@ -24,7 +24,7 @@ jobs:
 
       - name: Get tag message
         run: |
-          git show "${{ github.ref_name }}" -s --format=%+B > release-notes.txt
+          git show "${{ github.ref_name }}" -s --format="%b" > release-notes.txt
           cat release-notes.txt
 
       - name: Log in to GHCR
