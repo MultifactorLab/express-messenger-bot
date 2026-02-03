@@ -25,14 +25,13 @@ jobs:
       - name: Get tag message
         id: tag_message
         run: |
-          TAG_MESSAGE=$(git tag -l --format='%(contents)' "${{ github.ref_name }}")
-          if [ -z "$TAG_MESSAGE" ]; then
-          echo "$TAG_MESSAGE"
-          TAG_MESSAGE="Release ${{ github.ref_name }}"
+          MESSAGE=$(git show "${{ github.ref_name }}" -s --format=%+B)
+          if [ -z "$MESSAGE" ]; then
+            MESSAGE="Release ${{ github.ref_name }}"
           fi
           {
             echo 'message<<EOF'
-            echo "$TAG_MESSAGE"
+            echo "$MESSAGE"
             echo 'EOF'
           } >> "$GITHUB_OUTPUT"
 
