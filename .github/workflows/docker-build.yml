@@ -21,13 +21,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-tags: true
 
       - name: Get tag message
         id: tag_message
         run: |
           TAG_MESSAGE=$(git tag -l --format='%(contents)' "${{ github.ref_name }}")
           if [ -z "$TAG_MESSAGE" ]; then
+          echo "$TAG_MESSAGE"
           TAG_MESSAGE="Release ${{ github.ref_name }}"
           fi
           {
