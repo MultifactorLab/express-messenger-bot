@@ -23,17 +23,9 @@ jobs:
           fetch-depth: 0
 
       - name: Get tag message
-        id: tag_message
         run: |
-          MESSAGE=$(git show "${{ github.ref_name }}" -s --format=%+B)
-          if [ -z "$MESSAGE" ]; then
-            MESSAGE="Release ${{ github.ref_name }}"
-          fi
-          {
-            echo 'message<<EOF'
-            echo "$MESSAGE"
-            echo 'EOF'
-          } >> "$GITHUB_OUTPUT"
+          git show "${{ github.ref_name }}" -s --format=%+B > release-notes.txt
+          cat release-notes.txt
 
       - name: Log in to GHCR
         uses: docker/login-action@v3
@@ -69,7 +61,7 @@ jobs:
         with:
           name: ${{ github.ref_name }}
           tag_name: ${{ github.ref_name }}
-          body: ${{ steps.tag_message.outputs.message }}
+          body_path: release-notes.txt
           draft: false
           prerelease: false
         env:
