@@ -87,11 +87,7 @@ public class MfExpressApiService : IMfExpressApiService
         {
             Code = code,
             ChatId = botRequest.GroupChatId,
-            BotId = botRequest.BotId,
-            ExpressUserId = botRequest.UserHuid,
-            Username = botRequest.Username,
-            LanguageCode = botRequest.Locale,
-            Device = botRequest.Device
+            Username = botRequest.Username
         };
 
         var response = await SendPostRequestWithResponseAsync(
