@@ -23,4 +23,3 @@ services:
       timeout: 3s
       start_period: 15s
       retries: 3
-
