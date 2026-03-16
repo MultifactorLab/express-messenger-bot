@@ -3,6 +3,7 @@ using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MF.Express.Bot.Application.Interfaces;
+using MF.Express.Bot.Application.Models.Common;
 using MF.Express.Bot.Application.UseCases.BotCommands;
 using MF.Express.Bot.Infrastructure.Configuration;
 
@@ -74,6 +75,30 @@ public class MfExpressApiService : IMfExpressApiService
             cancellationToken);
     }
 
+    public async Task<InlineEnrollResponse> SendInlineEnrollCodeAsync(
+        BotCommandRequest botRequest,
+        string code,
+        CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Sending inline enroll code to MF Express API. ChatId: {ChatId:l}, Code: {Code:l}",
+            botRequest.GroupChatId, code);
+
+        var payload = new
+        {
+            Code = code,
+            ChatId = botRequest.GroupChatId,
+            Username = botRequest.Username
+        };
+
+        var response = await SendPostRequestWithResponseAsync(
+            _configuration.InlineEnrollEndpoint,
+            payload,
+            "Inline enroll",
+            cancellationToken);
+
+        return response;
+    }
+
     private async Task<bool> SendPostRequestAsync(
         string endpoint,
         object payload,
@@ -107,5 +132,48 @@ public class MfExpressApiService : IMfExpressApiService
             return false;
         }
     }
-}
 
+    private async Task<InlineEnrollResponse> SendPostRequestWithResponseAsync(
+        string endpoint,
+        object payload,
+        string operationName,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var httpClient = _httpClientFactory.CreateClient("MfExpressApi");
+
+            var json = JsonSerializer.Serialize(payload, _jsonOptions);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            var response = await httpClient.PostAsync(endpoint, content, cancellationToken);
+
+            var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                _logger.LogWarning("Failed to send {Operation} to MF Express API. Status: {Status:l}, Response: {Response:l}",
+                    operationName, response.StatusCode, responseContent);
+                return new InlineEnrollResponse(false, ErrorMessage: "Inline enroll request failed");
+            }
+
+            var result = JsonSerializer.Deserialize<CommandResultDto>(responseContent, _jsonOptions);
+            if (result == null)
+            {
+                return new InlineEnrollResponse(false, ErrorMessage: "Empty response from MF Express API");
+            }
+
+            return new InlineEnrollResponse(result.Success, result.Message, result.Success ? null : result.Message);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Exception sending {Operation} to MF Express API", operationName);
+            return new InlineEnrollResponse(false, ErrorMessage: "Inline enroll request failed");
+        }
+    }
+
+    private sealed class CommandResultDto
+    {
+        public bool Success { get; set; }
+        public string Message { get; set; } = string.Empty;
+    }
+}

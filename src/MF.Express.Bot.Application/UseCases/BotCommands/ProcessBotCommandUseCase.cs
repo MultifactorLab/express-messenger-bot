@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using MF.Express.Bot.Application.Interfaces;
 using MF.Express.Bot.Application.Services;
 using Microsoft.Extensions.Logging;
@@ -21,19 +22,22 @@ public record BotCommandResult(
     string? ErrorMessage = null
 );
 
-public class ProcessBotCommandUseCase : IUseCase<BotCommandRequest, BotCommandResult>
+public partial class ProcessBotCommandUseCase : IUseCase<BotCommandRequest, BotCommandResult>
 {
     private readonly IMfExpressApiService _mfApiService;
     private readonly IAuthProcessingService _authProcessingService;
+    private readonly IBotXApiService _botXApiService;
     private readonly ILogger<ProcessBotCommandUseCase> _logger;
 
     public ProcessBotCommandUseCase(
         IMfExpressApiService mfApiService,
         IAuthProcessingService authProcessingService,
+        IBotXApiService botXApiService,
         ILogger<ProcessBotCommandUseCase> logger)
     {
         _mfApiService = mfApiService;
         _authProcessingService = authProcessingService;
+        _botXApiService = botXApiService;
         _logger = logger;
     }
 
@@ -87,6 +91,23 @@ public class ProcessBotCommandUseCase : IUseCase<BotCommandRequest, BotCommandRe
 
                 var result = await _mfApiService.SendChatCreatedCallbackAsync(botRequest, requestId, cancellationToken);
                 return new BotCommandResult(result);
+            }
+
+            if (IsInlineEnrollmentCode(botRequest))
+            {
+                var code = botRequest.CommandBody!.Trim();
+                var response = await _mfApiService.SendInlineEnrollCodeAsync(botRequest, code, cancellationToken);
+                if (!response.Success)
+                {
+                    return new BotCommandResult(false, response.ErrorMessage ?? "Inline enrollment failed");
+                }
+
+                if (!string.IsNullOrWhiteSpace(response.Message) && !string.IsNullOrWhiteSpace(botRequest.GroupChatId))
+                {
+                    await _botXApiService.SendTextMessageAsync(botRequest.GroupChatId, response.Message, cancellationToken);
+                }
+
+                return new BotCommandResult(true);
             }
 
             if (IsButtonCallback(botRequest))
@@ -150,6 +171,16 @@ public class ProcessBotCommandUseCase : IUseCase<BotCommandRequest, BotCommandRe
         return request.CommandBody.Contains(':') && request.CommandBody.Split(':').Length == 3;
     }
 
+    private static bool IsInlineEnrollmentCode(BotCommandRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.CommandBody))
+        {
+            return false;
+        }
+
+        return InlineEnrollmentRegex().IsMatch(request.CommandBody.Trim());
+    }
+
     private static string? ExtractRequestId(BotCommandRequest request)
     {
         if (request.CommandData?.TryGetValue("command", out var commandObj) == true)
@@ -157,7 +188,7 @@ public class ProcessBotCommandUseCase : IUseCase<BotCommandRequest, BotCommandRe
             var commandValue = commandObj?.ToString();
             if (!string.IsNullOrEmpty(commandValue))
             {
-                var match = System.Text.RegularExpressions.Regex.Match(commandValue, @"req=([^\s]+)");
+                var match = RequestRegex().Match(commandValue);
                 if (match is { Success: true, Groups.Count: > 1 })
                 {
                     return match.Groups[1].Value;
@@ -167,4 +198,10 @@ public class ProcessBotCommandUseCase : IUseCase<BotCommandRequest, BotCommandRe
 
         return null;
     }
+
+    [GeneratedRegex(@"^/?req=([^\s]+)$")]
+    private static partial Regex RequestRegex();
+    
+    [GeneratedRegex(@"^\d{6}$")]
+    private static partial Regex InlineEnrollmentRegex();
 }
