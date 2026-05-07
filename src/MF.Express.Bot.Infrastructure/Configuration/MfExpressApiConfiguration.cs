@@ -12,5 +12,7 @@ public class MfExpressApiConfiguration
     public string ChatCreatedEndpoint { get; set; } = "/api/express/webhook/chat-created";
     
     public string AuthCallbackEndpoint { get; set; } = "/api/express/webhook/auth-callback";
+
+    public string InlineEnrollEndpoint { get; set; } = "/api/express/webhook/inline-enroll";
 }
 
